@@ -1,0 +1,26 @@
+from fastapi import APIRouter, HTTPException
+from app.models.schemas import HotTakeRequest, HotTakeResponse
+from app.services.hot_take_service import HotTakeService
+
+router = APIRouter()
+hot_take_service = HotTakeService()
+
+@router.post("/generate", response_model=HotTakeResponse)
+async def generate_hot_take(request: HotTakeRequest):
+    try:
+        result = await hot_take_service.generate_hot_take(
+            topic=request.topic,
+            style=request.style,
+            agent_type=None
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/agents")
+async def get_agents():
+    return {"agents": hot_take_service.get_available_agents()}
+
+@router.get("/styles")
+async def get_styles():
+    return {"styles": hot_take_service.get_available_styles()}
