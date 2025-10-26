@@ -11,7 +11,9 @@ async def generate_hot_take(request: HotTakeRequest):
         result = await hot_take_service.generate_hot_take(
             topic=request.topic,
             style=request.style,
-            agent_type=None
+            agent_type=None,
+            use_web_search=request.use_web_search,
+            max_articles=request.max_articles
         )
         return result
     except Exception as e:
