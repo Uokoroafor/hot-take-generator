@@ -6,7 +6,6 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from urllib.parse import quote
 from bs4 import BeautifulSoup
-from newspaper import Article
 import logging
 
 logger = logging.getLogger(__name__)
