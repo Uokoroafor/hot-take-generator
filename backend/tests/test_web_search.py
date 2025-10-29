@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from app.services.web_search_service import WebSearchService, NewsSource
 from app.models.schemas import HotTakeRequest, HotTakeResponse
 
+
 class TestWebSearchService:
     def test_news_source_initialization(self):
         source = NewsSource("Test News", "http://test.com/rss.xml")
@@ -31,7 +32,10 @@ class TestWebSearchService:
         assert service._is_topic_relevant(entry, "AI")
 
         # Test exact match in summary
-        entry = {"title": "Technology news", "summary": "Artificial intelligence breaking news"}
+        entry = {
+            "title": "Technology news",
+            "summary": "Artificial intelligence breaking news",
+        }
         assert service._is_topic_relevant(entry, "artificial intelligence")
 
         # Test word match
@@ -42,7 +46,10 @@ class TestWebSearchService:
         service = WebSearchService()
 
         # Test no match
-        entry = {"title": "Sports news today", "summary": "Basketball and football updates"}
+        entry = {
+            "title": "Sports news today",
+            "summary": "Basketball and football updates",
+        }
         assert not service._is_topic_relevant(entry, "technology")
 
         # Test empty entry
@@ -76,7 +83,7 @@ class TestWebSearchService:
             {"title": "Recent news", "published": recent_date},
             {"title": "Old news", "published": old_date},
             {"title": "Very recent", "published": now},
-            {"title": "No date", "published": None}
+            {"title": "No date", "published": None},
         ]
 
         filtered = service._filter_recent_articles(articles)
@@ -99,14 +106,14 @@ class TestWebSearchService:
                 "title": "AI breakthrough",
                 "summary": "New AI model released",
                 "source": "Tech News",
-                "published": datetime.now()
+                "published": datetime.now(),
             },
             {
                 "title": "Climate update",
                 "summary": "Global temperature rise",
                 "source": "Environment Today",
-                "published": None
-            }
+                "published": None,
+            },
         ]
 
         context = service.format_news_context(articles)
@@ -118,7 +125,7 @@ class TestWebSearchService:
         assert "Environment Today" in context
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_fetch_rss_articles_success(self, mock_client):
         service = WebSearchService()
 
@@ -146,7 +153,7 @@ class TestWebSearchService:
         assert len(articles) >= 0  # May be 0 if topic relevance check fails
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_fetch_rss_articles_error(self, mock_client):
         service = WebSearchService()
 
@@ -161,7 +168,7 @@ class TestWebSearchService:
         assert articles == []
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_search_web_success(self, mock_client):
         service = WebSearchService()
 
@@ -171,7 +178,7 @@ class TestWebSearchService:
             "RelatedTopics": [
                 {
                     "Text": "AI technology advances rapidly",
-                    "FirstURL": "http://example.com/ai"
+                    "FirstURL": "http://example.com/ai",
                 }
             ]
         }
@@ -187,7 +194,7 @@ class TestWebSearchService:
             assert "FirstURL" in articles[0] or "url" in articles[0]
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_search_web_error(self, mock_client):
         service = WebSearchService()
 
@@ -200,7 +207,7 @@ class TestWebSearchService:
         assert articles == []
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_article_content_success(self, mock_client):
         service = WebSearchService()
 
@@ -231,7 +238,7 @@ class TestWebSearchService:
         assert "color: red" not in content  # Style should be removed
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
+    @patch("httpx.AsyncClient")
     async def test_get_article_content_error(self, mock_client):
         service = WebSearchService()
 
@@ -253,16 +260,17 @@ class TestWebSearchService:
                 "title": "Test Article",
                 "summary": "Test summary",
                 "source": "Test Source",
-                "published": datetime.now()
+                "published": datetime.now(),
             }
         ]
 
-        with patch.object(service, 'search_recent_news', return_value=mock_articles):
+        with patch.object(service, "search_recent_news", return_value=mock_articles):
             result = await service.search_and_format("test topic", 1)
 
             assert "Recent news and headlines:" in result
             assert "Test Article" in result
             assert "Test Source" in result
+
 
 class TestWebSearchIntegration:
     """Test web search integration with the hot take service"""
@@ -275,14 +283,20 @@ class TestWebSearchIntegration:
 
         # Mock the web search
         mock_context = "Recent news: AI technology advances"
-        with patch.object(service.web_search_service, 'search_and_format', return_value=mock_context):
+        with patch.object(
+            service.web_search_service, "search_and_format", return_value=mock_context
+        ):
             # Mock the agent response
-            with patch.object(service.agents['openai'], 'generate_hot_take', return_value="AI hot take"):
+            with patch.object(
+                service.agents["openai"],
+                "generate_hot_take",
+                return_value="AI hot take",
+            ):
                 result = await service.generate_hot_take(
                     topic="AI",
                     style="controversial",
                     use_web_search=True,
-                    max_articles=2
+                    max_articles=2,
                 )
 
                 assert isinstance(result, HotTakeResponse)
@@ -296,11 +310,11 @@ class TestWebSearchIntegration:
         service = HotTakeService()
 
         # Mock the agent response
-        with patch.object(service.agents['openai'], 'generate_hot_take', return_value="AI hot take"):
+        with patch.object(
+            service.agents["openai"], "generate_hot_take", return_value="AI hot take"
+        ):
             result = await service.generate_hot_take(
-                topic="AI",
-                style="controversial",
-                use_web_search=False
+                topic="AI", style="controversial", use_web_search=False
             )
 
             assert isinstance(result, HotTakeResponse)
@@ -314,28 +328,32 @@ class TestWebSearchIntegration:
         service = HotTakeService()
 
         # Mock web search to raise an error
-        with patch.object(service.web_search_service, 'search_and_format', side_effect=Exception("Search failed")):
+        with patch.object(
+            service.web_search_service,
+            "search_and_format",
+            side_effect=Exception("Search failed"),
+        ):
             # Mock the agent response
-            with patch.object(service.agents['openai'], 'generate_hot_take', return_value="AI hot take"):
+            with patch.object(
+                service.agents["openai"],
+                "generate_hot_take",
+                return_value="AI hot take",
+            ):
                 result = await service.generate_hot_take(
-                    topic="AI",
-                    style="controversial",
-                    use_web_search=True
+                    topic="AI", style="controversial", use_web_search=True
                 )
 
                 # Should continue without web search when it fails
                 assert isinstance(result, HotTakeResponse)
                 assert result.web_search_used is False
 
+
 class TestWebSearchModels:
     """Test the updated models with web search fields"""
 
     def test_hot_take_request_with_web_search(self):
         request = HotTakeRequest(
-            topic="test",
-            style="controversial",
-            use_web_search=True,
-            max_articles=5
+            topic="test", style="controversial", use_web_search=True, max_articles=5
         )
 
         assert request.topic == "test"
@@ -355,7 +373,7 @@ class TestWebSearchModels:
             style="controversial",
             agent_used="Test Agent",
             web_search_used=True,
-            news_context="Test news context"
+            news_context="Test news context",
         )
 
         assert response.web_search_used is True
@@ -366,11 +384,12 @@ class TestWebSearchModels:
             hot_take="test take",
             topic="test",
             style="controversial",
-            agent_used="Test Agent"
+            agent_used="Test Agent",
         )
 
         assert response.web_search_used is False
         assert response.news_context is None
+
 
 class TestExternalAPIs:
     """Tests that require external API access - run with pytest -m external"""

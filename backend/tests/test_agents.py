@@ -4,10 +4,13 @@ from app.agents.base import BaseAgent
 from app.agents.openai_agent import OpenAIAgent
 from app.agents.anthropic_agent import AnthropicAgent
 
+
 class TestBaseAgent:
     def test_base_agent_initialization(self):
         class TestAgent(BaseAgent):
-            async def generate_hot_take(self, topic: str, style: str = "controversial") -> str:
+            async def generate_hot_take(
+                self, topic: str, style: str = "controversial"
+            ) -> str:
                 return "test"
 
             def get_system_prompt(self, style: str) -> str:
@@ -20,7 +23,9 @@ class TestBaseAgent:
 
     def test_base_agent_default_temperature(self):
         class TestAgent(BaseAgent):
-            async def generate_hot_take(self, topic: str, style: str = "controversial") -> str:
+            async def generate_hot_take(
+                self, topic: str, style: str = "controversial"
+            ) -> str:
                 return "test"
 
             def get_system_prompt(self, style: str) -> str:
@@ -28,6 +33,7 @@ class TestBaseAgent:
 
         agent = TestAgent("Test Agent", "test-model")
         assert agent.temperature == 0.7
+
 
 class TestOpenAIAgent:
     def test_openai_agent_initialization(self, mock_settings):
@@ -60,7 +66,7 @@ class TestOpenAIAgent:
         assert prompt == controversial_prompt
 
     @pytest.mark.asyncio
-    @patch('app.agents.openai_agent.AsyncOpenAI')
+    @patch("app.agents.openai_agent.AsyncOpenAI")
     async def test_generate_hot_take_success(self, mock_openai_class, mock_settings):
         mock_client = AsyncMock()
         mock_openai_class.return_value = mock_client
@@ -71,7 +77,9 @@ class TestOpenAIAgent:
         mock_client.chat.completions.create.return_value = mock_response
 
         agent = OpenAIAgent()
-        result = await agent.generate_hot_take("artificial intelligence", "controversial")
+        result = await agent.generate_hot_take(
+            "artificial intelligence", "controversial"
+        )
 
         assert result == "AI will dominate the world!"
         mock_client.chat.completions.create.assert_called_once()
@@ -81,7 +89,7 @@ class TestOpenAIAgent:
         assert call_args.kwargs["max_tokens"] == 200
 
     @pytest.mark.asyncio
-    @patch('app.agents.openai_agent.AsyncOpenAI')
+    @patch("app.agents.openai_agent.AsyncOpenAI")
     async def test_generate_hot_take_api_error(self, mock_openai_class, mock_settings):
         mock_client = AsyncMock()
         mock_openai_class.return_value = mock_client
@@ -91,6 +99,7 @@ class TestOpenAIAgent:
         result = await agent.generate_hot_take("test topic")
 
         assert "Error generating hot take: API Error" in result
+
 
 class TestAnthropicAgent:
     def test_anthropic_agent_initialization(self, mock_settings):
@@ -123,7 +132,7 @@ class TestAnthropicAgent:
         assert prompt == controversial_prompt
 
     @pytest.mark.asyncio
-    @patch('app.agents.anthropic_agent.AsyncAnthropic')
+    @patch("app.agents.anthropic_agent.AsyncAnthropic")
     async def test_generate_hot_take_success(self, mock_anthropic_class, mock_settings):
         mock_client = AsyncMock()
         mock_anthropic_class.return_value = mock_client
@@ -144,8 +153,10 @@ class TestAnthropicAgent:
         assert call_args.kwargs["max_tokens"] == 200
 
     @pytest.mark.asyncio
-    @patch('app.agents.anthropic_agent.AsyncAnthropic')
-    async def test_generate_hot_take_api_error(self, mock_anthropic_class, mock_settings):
+    @patch("app.agents.anthropic_agent.AsyncAnthropic")
+    async def test_generate_hot_take_api_error(
+        self, mock_anthropic_class, mock_settings
+    ):
         mock_client = AsyncMock()
         mock_anthropic_class.return_value = mock_client
         mock_client.messages.create.side_effect = Exception("Anthropic API Error")
@@ -155,11 +166,15 @@ class TestAnthropicAgent:
 
         assert "Error generating hot take: Anthropic API Error" in result
 
+
 class TestAgentIntegration:
     @pytest.mark.external
     @pytest.mark.asyncio
     async def test_openai_agent_real_api(self, mock_settings):
-        if not mock_settings.openai_api_key or mock_settings.openai_api_key == "test-openai-key":
+        if (
+            not mock_settings.openai_api_key
+            or mock_settings.openai_api_key == "test-openai-key"
+        ):
             pytest.skip("No real OpenAI API key provided")
 
         agent = OpenAIAgent()
@@ -172,7 +187,10 @@ class TestAgentIntegration:
     @pytest.mark.external
     @pytest.mark.asyncio
     async def test_anthropic_agent_real_api(self, mock_settings):
-        if not mock_settings.anthropic_api_key or mock_settings.anthropic_api_key == "test-anthropic-key":
+        if (
+            not mock_settings.anthropic_api_key
+            or mock_settings.anthropic_api_key == "test-anthropic-key"
+        ):
             pytest.skip("No real Anthropic API key provided")
 
         agent = AnthropicAgent()

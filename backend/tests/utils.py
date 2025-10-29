@@ -2,8 +2,10 @@ import asyncio
 from typing import Any, Dict, List
 from unittest.mock import AsyncMock, MagicMock
 
+
 class MockAgent:
     """Mock agent for testing purposes"""
+
     def __init__(self, name: str, responses: List[str] = None):
         self.name = name
         self.model = "mock-model"
@@ -19,14 +21,18 @@ class MockAgent:
     def get_system_prompt(self, style: str) -> str:
         return f"Mock system prompt for {style} style"
 
-def create_mock_response(hot_take: str, topic: str, style: str, agent_name: str) -> Dict[str, Any]:
+
+def create_mock_response(
+    hot_take: str, topic: str, style: str, agent_name: str
+) -> Dict[str, Any]:
     """Create a mock API response"""
     return {
         "hot_take": hot_take,
         "topic": topic,
         "style": style,
-        "agent_used": agent_name
+        "agent_used": agent_name,
     }
+
 
 def create_mock_openai_response(content: str) -> MagicMock:
     """Create a mock OpenAI API response"""
@@ -35,6 +41,7 @@ def create_mock_openai_response(content: str) -> MagicMock:
     mock_response.choices[0].message.content = content
     return mock_response
 
+
 def create_mock_anthropic_response(content: str) -> MagicMock:
     """Create a mock Anthropic API response"""
     mock_response = MagicMock()
@@ -42,8 +49,10 @@ def create_mock_anthropic_response(content: str) -> MagicMock:
     mock_response.content[0].text = content
     return mock_response
 
+
 class AsyncContextManager:
     """Helper for testing async context managers"""
+
     def __init__(self, return_value):
         self.return_value = return_value
 
@@ -53,6 +62,7 @@ class AsyncContextManager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
+
 def run_async_test(coro):
     """Helper to run async tests in sync test functions"""
     loop = asyncio.new_event_loop()
@@ -61,44 +71,51 @@ def run_async_test(coro):
     finally:
         loop.close()
 
+
 class TestDataFactory:
     """Factory for creating test data"""
 
     @staticmethod
     def hot_take_request(topic="test topic", style="controversial", length="medium"):
-        return {
-            "topic": topic,
-            "style": style,
-            "length": length
-        }
+        return {"topic": topic, "style": style, "length": length}
 
     @staticmethod
-    def hot_take_response(hot_take="Test hot take", topic="test topic",
-                         style="controversial", agent_used="Test Agent"):
+    def hot_take_response(
+        hot_take="Test hot take",
+        topic="test topic",
+        style="controversial",
+        agent_used="Test Agent",
+    ):
         return {
             "hot_take": hot_take,
             "topic": topic,
             "style": style,
-            "agent_used": agent_used
+            "agent_used": agent_used,
         }
 
     @staticmethod
-    def agent_config(name="Test Agent", description="A test agent",
-                    model="test-model", temperature=0.7,
-                    system_prompt="Test system prompt"):
+    def agent_config(
+        name="Test Agent",
+        description="A test agent",
+        model="test-model",
+        temperature=0.7,
+        system_prompt="Test system prompt",
+    ):
         return {
             "name": name,
             "description": description,
             "model": model,
             "temperature": temperature,
-            "system_prompt": system_prompt
+            "system_prompt": system_prompt,
         }
+
 
 def assert_response_format(response_data: Dict[str, Any]):
     """Assert that a response has the correct format"""
     required_fields = {"hot_take", "topic", "style", "agent_used"}
-    assert all(field in response_data for field in required_fields), \
+    assert all(field in response_data for field in required_fields), (
         f"Response missing required fields. Expected: {required_fields}, Got: {response_data.keys()}"
+    )
 
     assert isinstance(response_data["hot_take"], str), "hot_take should be a string"
     assert isinstance(response_data["topic"], str), "topic should be a string"
@@ -109,6 +126,7 @@ def assert_response_format(response_data: Dict[str, Any]):
     assert len(response_data["topic"]) > 0, "topic should not be empty"
     assert len(response_data["style"]) > 0, "style should not be empty"
     assert len(response_data["agent_used"]) > 0, "agent_used should not be empty"
+
 
 class MockAPIClient:
     """Mock API client for testing external API calls"""

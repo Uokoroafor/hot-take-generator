@@ -2,12 +2,11 @@ import pytest
 from pydantic import ValidationError
 from app.models.schemas import HotTakeRequest, HotTakeResponse, AgentConfig
 
+
 class TestHotTakeRequest:
     def test_hot_take_request_valid(self):
         request = HotTakeRequest(
-            topic="artificial intelligence",
-            style="controversial",
-            length="medium"
+            topic="artificial intelligence", style="controversial", length="medium"
         )
         assert request.topic == "artificial intelligence"
         assert request.style == "controversial"
@@ -37,24 +36,16 @@ class TestHotTakeRequest:
         assert "topic" in errors[0]["loc"]
 
     def test_hot_take_request_custom_style(self):
-        request = HotTakeRequest(
-            topic="technology",
-            style="sarcastic"
-        )
+        request = HotTakeRequest(topic="technology", style="sarcastic")
         assert request.style == "sarcastic"
 
     def test_hot_take_request_custom_length(self):
-        request = HotTakeRequest(
-            topic="technology",
-            length="long"
-        )
+        request = HotTakeRequest(topic="technology", length="long")
         assert request.length == "long"
 
     def test_hot_take_request_json_serialization(self):
         request = HotTakeRequest(
-            topic="climate change",
-            style="optimistic",
-            length="short"
+            topic="climate change", style="optimistic", length="short"
         )
         json_data = request.model_dump()
 
@@ -62,13 +53,14 @@ class TestHotTakeRequest:
         assert json_data["style"] == "optimistic"
         assert json_data["length"] == "short"
 
+
 class TestHotTakeResponse:
     def test_hot_take_response_valid(self):
         response = HotTakeResponse(
             hot_take="This is a controversial opinion!",
             topic="technology",
             style="controversial",
-            agent_used="OpenAI Agent"
+            agent_used="OpenAI Agent",
         )
         assert response.hot_take == "This is a controversial opinion!"
         assert response.topic == "technology"
@@ -86,12 +78,7 @@ class TestHotTakeResponse:
 
     def test_hot_take_response_empty_strings(self):
         with pytest.raises(ValidationError) as exc_info:
-            HotTakeResponse(
-                hot_take="",
-                topic="",
-                style="",
-                agent_used=""
-            )
+            HotTakeResponse(hot_take="", topic="", style="", agent_used="")
 
         errors = exc_info.value.errors()
         assert len(errors) == 4  # All fields should fail validation
@@ -101,7 +88,7 @@ class TestHotTakeResponse:
             hot_take="Pizza is overrated!",
             topic="food",
             style="contrarian",
-            agent_used="Claude Agent"
+            agent_used="Claude Agent",
         )
         json_data = response.model_dump()
 
@@ -110,6 +97,7 @@ class TestHotTakeResponse:
         assert json_data["style"] == "contrarian"
         assert json_data["agent_used"] == "Claude Agent"
 
+
 class TestAgentConfig:
     def test_agent_config_valid(self):
         config = AgentConfig(
@@ -117,7 +105,7 @@ class TestAgentConfig:
             description="A test AI agent",
             model="gpt-3.5-turbo",
             temperature=0.7,
-            system_prompt="You are a helpful assistant."
+            system_prompt="You are a helpful assistant.",
         )
         assert config.name == "Test Agent"
         assert config.description == "A test AI agent"
@@ -130,7 +118,13 @@ class TestAgentConfig:
             AgentConfig()
 
         errors = exc_info.value.errors()
-        required_fields = {"name", "description", "model", "temperature", "system_prompt"}
+        required_fields = {
+            "name",
+            "description",
+            "model",
+            "temperature",
+            "system_prompt",
+        }
         error_fields = {error["loc"][0] for error in errors}
         assert required_fields.issubset(error_fields)
 
@@ -141,7 +135,7 @@ class TestAgentConfig:
             description="Test",
             model="test-model",
             temperature=0.5,
-            system_prompt="Test prompt"
+            system_prompt="Test prompt",
         )
         assert valid_config.temperature == 0.5
 
@@ -152,7 +146,7 @@ class TestAgentConfig:
                 description="Test",
                 model="test-model",
                 temperature="invalid",
-                system_prompt="Test prompt"
+                system_prompt="Test prompt",
             )
 
     def test_agent_config_json_serialization(self):
@@ -161,7 +155,7 @@ class TestAgentConfig:
             description="Anthropic's Claude AI model",
             model="claude-3-haiku-20240307",
             temperature=0.8,
-            system_prompt="You are a creative and insightful assistant."
+            system_prompt="You are a creative and insightful assistant.",
         )
         json_data = config.model_dump()
 
@@ -169,20 +163,20 @@ class TestAgentConfig:
         assert json_data["description"] == "Anthropic's Claude AI model"
         assert json_data["model"] == "claude-3-haiku-20240307"
         assert json_data["temperature"] == 0.8
-        assert json_data["system_prompt"] == "You are a creative and insightful assistant."
+        assert (
+            json_data["system_prompt"] == "You are a creative and insightful assistant."
+        )
+
 
 class TestModelCompatibility:
     def test_request_response_compatibility(self):
-        request = HotTakeRequest(
-            topic="space exploration",
-            style="optimistic"
-        )
+        request = HotTakeRequest(topic="space exploration", style="optimistic")
 
         response = HotTakeResponse(
             hot_take="Space exploration will bring humanity together!",
             topic=request.topic,
             style=request.style,
-            agent_used="Test Agent"
+            agent_used="Test Agent",
         )
 
         assert response.topic == request.topic
@@ -193,9 +187,11 @@ class TestModelCompatibility:
         request_data = {
             "topic": "music",
             "style": "witty",
-            "extra_field": "should be ignored"
+            "extra_field": "should be ignored",
         }
 
-        request = HotTakeRequest(**{k: v for k, v in request_data.items() if k != "extra_field"})
+        request = HotTakeRequest(
+            **{k: v for k, v in request_data.items() if k != "extra_field"}
+        )
         assert request.topic == "music"
         assert request.style == "witty"
