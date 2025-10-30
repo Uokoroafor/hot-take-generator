@@ -78,7 +78,7 @@ Each section includes short-term and long-term goals to guide development.
 - [ ] Remember user preferences (style, agent) via localStorage
 - [ ] Add dark mode and theming support
 - [ ] Add “Share Take” button (copy permalink or tweet)
-- [ ] Add analytics for style/agent usage (anonymized)
+- [ ] Add analytics for style/agent usage (anonymised)
 
 ---
 

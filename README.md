@@ -3,7 +3,7 @@
 A full-stack application that generates spicy opinions on any topic using AI agents powered by OpenAI and Anthropic models.
 
 ## About
-This project was inspired by one of my favourite podcasts, [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast), which kicks off each episode with a "Hottest of Takes" segment. Where each presenter has to give a bold and, prefarably, controversial opinion about anything or anyone related Arsenal FC. I wanted to capture that same spirit with AI: a tool that can instantly craft witty, controversial, or thought-provoking takes on any topic. Whether it’s something serious, silly, or somewhere in between.
+This project was inspired by one of my favourite podcasts, [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast), which kicks off each episode with a "Hottest of Takes" segment. Where each presenter has to give a bold and, preferably, controversial opinion about anything or anyone related to Arsenal FC. I wanted to capture that same spirit with AI: a tool that can instantly craft witty, controversial, or thought-provoking takes on any topic. Whether it's something serious, silly, or somewhere in between.
 
 ## Features
 
@@ -324,7 +324,7 @@ make docker-clean       # Clean up Docker resources
 make help               # Show all available commands
 make info               # Show development information
 make health             # Check if services are running
-make clean              # Clean up build artifacts
+make clean              # Clean up build artefacts
 ```
 
 ## Troubleshooting
