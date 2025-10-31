@@ -5,7 +5,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🚀 Deployment & Infrastructure
+## Deployment & Infrastructure
 
 ### Short Term
 - [ ] Create multi-stage production Dockerfile (builder → slim runtime)
@@ -24,7 +24,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 ### Backend
 - [ ] Mock OpenAI and Anthropic APIs with `respx` or `pytest-httpx`
@@ -44,7 +44,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🔍 Observability & Monitoring
+## Observability & Monitoring
 
 - [ ] Integrate **Langfuse** for AI observability
   - [ ] Track prompt inputs, completions, latency, and provider metrics
@@ -60,7 +60,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🧠 AI Features & Agents
+## AI Features & Agents
 
 - [ ] Support additional LLM providers (Mistral, Gemini)
 - [ ] Add adjustable creativity/temperature settings in UI
@@ -71,7 +71,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🎨 Frontend & UX
+## Frontend & UX
 
 - [ ] Add loading animation while generating takes
 - [ ] Add error states for timeouts, rate limits, invalid input
@@ -82,7 +82,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🧰 Developer Experience
+## Developer Experience
 
 - [ ] Add GitHub Actions CI/CD workflows:
   - [ ] Lint → Test → Build → Deploy
@@ -94,7 +94,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🧩 Documentation & Project Polish
+## Documentation & Project Polish
 
 - [ ] Add architecture diagram (frontend ↔ backend ↔ agents ↔ web search)
 - [ ] Add environment variables reference table
@@ -105,7 +105,7 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-## 🪄 Stretch Goals
+## Stretch Goals
 
 - [ ] Multi-user sessions with authentication
 - [ ] Save and browse “best takes” leaderboard

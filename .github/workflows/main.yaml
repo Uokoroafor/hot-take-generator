@@ -11,6 +11,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'fake-openai-key' }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'fake-anthropic-key' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
