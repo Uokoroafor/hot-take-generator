@@ -1,4 +1,3 @@
-import pytest
 import os
 from unittest.mock import patch
 from app.core.config import Settings, settings

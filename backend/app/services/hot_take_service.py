@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import List
 from app.agents.openai_agent import OpenAIAgent
 from app.agents.anthropic_agent import AnthropicAgent
 from app.models.schemas import HotTakeResponse
