@@ -119,5 +119,5 @@ class TestCORSHeaders:
         assert response.status_code in [
             status.HTTP_200_OK,
             status.HTTP_204_NO_CONTENT,
-            status.HTTP_405_METHOD_NOT_ALLOWED
+            status.HTTP_405_METHOD_NOT_ALLOWED,
         ]

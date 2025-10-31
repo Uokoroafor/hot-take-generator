@@ -10,11 +10,11 @@ class HotTakeRequest(BaseModel):
     use_web_search: Optional[bool] = False
     max_articles: Optional[int] = 3
 
-    @field_validator('topic')
+    @field_validator("topic")
     @classmethod
     def topic_must_not_be_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError('Topic cannot be empty')
+            raise ValueError("Topic cannot be empty")
         return v.strip()
 
 
@@ -26,7 +26,7 @@ class HotTakeResponse(BaseModel):
     web_search_used: Optional[bool] = False
     news_context: Optional[str] = None
 
-    @field_validator('hot_take', 'topic', 'style', 'agent_used')
+    @field_validator("hot_take", "topic", "style", "agent_used")
     def not_empty_or_whitespace(cls, v: str, field):
         if not v or not v.strip():
             raise ValueError(f"{str(field)} cannot be empty or whitespace")

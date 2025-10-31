@@ -2,6 +2,7 @@
 Centralized prompt management for hot take generation.
 Contains unified prompts that work across all agent types.
 """
+
 from enum import Enum
 
 
@@ -29,6 +30,7 @@ class NewsContextPrompts:
 
 class AgentType(Enum):
     """Enumeration of available agent types."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
 
@@ -47,7 +49,9 @@ class PromptManager:
         Returns:
             The appropriate base prompt string
         """
-        return StylePrompts.BASE_PROMPTS.get(style, StylePrompts.BASE_PROMPTS["controversial"])
+        return StylePrompts.BASE_PROMPTS.get(
+            style, StylePrompts.BASE_PROMPTS["controversial"]
+        )
 
     @staticmethod
     def get_news_context_suffix() -> str:
@@ -60,7 +64,9 @@ class PromptManager:
         return NewsContextPrompts.NEWS_SUFFIX
 
     @staticmethod
-    def get_full_prompt(agent_type: AgentType, style: str, with_news: bool = False) -> str:
+    def get_full_prompt(
+        agent_type: AgentType, style: str, with_news: bool = False
+    ) -> str:
         """
         Get the complete prompt for a specific style and news context requirement.
         Note: agent_type is kept for backward compatibility but not used.

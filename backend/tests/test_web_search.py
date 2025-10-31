@@ -68,10 +68,9 @@ class TestWebSearchService:
         assert result is None
 
         # Test with valid entry
-        result = service._parse_entry_datetime({
-            "published": "Wed, 15 Nov 2023 10:00:00 GMT",
-            "published_parsed": None
-        })
+        result = service._parse_entry_datetime(
+            {"published": "Wed, 15 Nov 2023 10:00:00 GMT", "published_parsed": None}
+        )
         assert isinstance(result, datetime) or result is None
 
     def test_filter_recent_articles(self):
@@ -79,6 +78,7 @@ class TestWebSearchService:
 
         # Create test articles with timezone-aware dates (as the service now expects)
         from datetime import timezone
+
         now = datetime.now(timezone.utc)
         recent_date = now - timedelta(days=2)
         old_date = now - timedelta(days=10)
@@ -106,6 +106,7 @@ class TestWebSearchService:
         service = WebSearchService()
 
         from datetime import timezone
+
         articles = [
             {
                 "title": "AI breakthrough",
@@ -261,6 +262,7 @@ class TestWebSearchService:
 
         # Mock the search_recent_news method
         from datetime import timezone
+
         mock_articles = [
             {
                 "title": "Test Article",
@@ -410,6 +412,7 @@ class TestExternalAPIs:
         source = NewsSource("BBC", "http://feeds.bbci.co.uk/news/rss.xml")
         # Need to use a real client for this test
         import httpx
+
         async with httpx.AsyncClient() as client:
             articles = await service._fetch_rss_articles(client, source, "news")
 

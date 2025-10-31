@@ -9,8 +9,8 @@ class TestSettings:
         # Test that Settings can be instantiated with defaults
         # Note: This will load from .env file if present
         test_settings = Settings()
-        assert hasattr(test_settings, 'openai_api_key')
-        assert hasattr(test_settings, 'anthropic_api_key')
+        assert hasattr(test_settings, "openai_api_key")
+        assert hasattr(test_settings, "anthropic_api_key")
         assert test_settings.environment == "development"
         assert test_settings.debug is True
 
@@ -96,7 +96,7 @@ class TestConfigIntegration:
         test_settings = Settings()
 
         # These may be loaded from .env file, so we just test they exist
-        assert hasattr(test_settings, 'openai_api_key')
-        assert hasattr(test_settings, 'anthropic_api_key')
+        assert hasattr(test_settings, "openai_api_key")
+        assert hasattr(test_settings, "anthropic_api_key")
         assert test_settings.environment == "development"
         assert test_settings.debug is True
