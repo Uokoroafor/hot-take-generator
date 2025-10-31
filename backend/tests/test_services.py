@@ -63,7 +63,7 @@ class TestHotTakeService:
         assert result.style == "controversial"
         assert result.agent_used == "OpenAI Agent"
         mock_openai_instance.generate_hot_take.assert_called_once_with(
-            "test topic", "controversial"
+            "test topic", "controversial", None
         )
 
     @pytest.mark.asyncio
@@ -93,7 +93,7 @@ class TestHotTakeService:
         assert result.style == "philosophical"
         assert result.agent_used == "Anthropic Agent"
         mock_anthropic_instance.generate_hot_take.assert_called_once_with(
-            "artificial intelligence", "philosophical"
+            "artificial intelligence", "philosophical", None
         )
 
     @pytest.mark.asyncio
@@ -170,7 +170,7 @@ class TestHotTakeService:
         assert isinstance(result, HotTakeResponse)
         assert result.style == "controversial"  # default style
         mock_openai_instance.generate_hot_take.assert_called_once_with(
-            "test topic", "controversial"
+            "test topic", "controversial", None
         )
 
     @pytest.mark.asyncio
