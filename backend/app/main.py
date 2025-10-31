@@ -6,7 +6,7 @@ from app.core.config import settings
 app = FastAPI(
     title="Hot Take Generator API",
     description="A FastAPI backend for generating hot takes using LLM agents",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 app.add_middleware(
@@ -19,9 +19,11 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api")
 
+
 @app.get("/")
 async def root():
     return {"message": "Hot Take Generator API"}
+
 
 @app.get("/health")
 async def health_check():

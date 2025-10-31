@@ -5,6 +5,7 @@ from app.services.hot_take_service import HotTakeService
 router = APIRouter()
 hot_take_service = HotTakeService()
 
+
 @router.post("/generate", response_model=HotTakeResponse)
 async def generate_hot_take(request: HotTakeRequest):
     try:
@@ -13,15 +14,17 @@ async def generate_hot_take(request: HotTakeRequest):
             style=request.style,
             agent_type=None,
             use_web_search=request.use_web_search,
-            max_articles=request.max_articles
+            max_articles=request.max_articles,
         )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/agents")
 async def get_agents():
     return {"agents": hot_take_service.get_available_agents()}
+
 
 @router.get("/styles")
 async def get_styles():
