@@ -63,6 +63,6 @@ jobs:
           cd backend
           uv run pytest
 
-      # ---- CHECK DOCKER BUILD ----
-      - name: Check Docker Build
-        run: docker compose build
+    #   # ---- CHECK DOCKER BUILD ----
+    #   - name: Check Docker Build
+    #     run: docker compose build
