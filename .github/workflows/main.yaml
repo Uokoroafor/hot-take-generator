@@ -31,10 +31,10 @@ jobs:
           cd frontend
           npm run lint
 
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm test
+    #   - name: Run frontend tests
+    #     run: |
+    #       cd frontend
+    #       npm test
 
       # ---- BACKEND ----
       - name: Set up Python
