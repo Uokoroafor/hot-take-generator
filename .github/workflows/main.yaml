@@ -99,13 +99,5 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Check Docker Build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Check Docker Compose Build
+        run: docker compose build
