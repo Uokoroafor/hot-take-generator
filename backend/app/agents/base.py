@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 
+
 class BaseAgent(ABC):
     def __init__(self, name: str, model: str, temperature: float = 0.7):
         self.name = name
@@ -8,7 +9,12 @@ class BaseAgent(ABC):
         self.temperature = temperature
 
     @abstractmethod
-    async def generate_hot_take(self, topic: str, style: str = "controversial", news_context: Optional[str] = None) -> str:
+    async def generate_hot_take(
+        self,
+        topic: str,
+        style: str = "controversial",
+        news_context: Optional[str] = None,
+    ) -> str:
         pass
 
     @abstractmethod
