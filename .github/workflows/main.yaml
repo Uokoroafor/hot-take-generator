@@ -41,7 +41,7 @@ jobs:
         run: |
           cd frontend
           npm test
-        continue-on-error: true  # Remove once tests are complete
+        # continue-on-error: true  # Remove once tests are complete
 
   backend:
     runs-on: ubuntu-latest
