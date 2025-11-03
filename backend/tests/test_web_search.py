@@ -1,123 +1,243 @@
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timedelta
-from app.services.web_search_service import WebSearchService, NewsSource
-from app.models.schemas import HotTakeRequest, HotTakeResponse
+from unittest.mock import patch, MagicMock
+from datetime import datetime, timezone
+from app.services.web_search_service import WebSearchService
+from app.models.schemas import HotTakeResponse
 
 
 class TestWebSearchService:
-    def test_news_source_initialization(self):
-        source = NewsSource("Test News", "http://test.com/rss.xml")
-        assert source.name == "Test News"
-        assert source.url == "http://test.com/rss.xml"
-        assert source.type == "rss"
-
     def test_web_search_service_initialization(self):
+        """Test service initializes with proper defaults."""
         service = WebSearchService()
-        assert len(service.news_sources) > 0
         assert service.max_articles == 5
         assert service.search_timeout == 15
 
+    @patch('app.services.web_search_service.settings')
+    def test_newsapi_client_initialization_with_key(self, mock_settings):
+        """Test NewsAPI client initializes when API key is present."""
+        mock_settings.newsapi_api_key = "test_api_key"
+        service = WebSearchService()
+        assert service.newsapi_client is not None
+
+    @patch('app.services.web_search_service.settings')
+    def test_newsapi_client_initialization_without_key(self, mock_settings):
+        """Test NewsAPI client is None when API key is missing."""
+        mock_settings.newsapi_api_key = None
+        service = WebSearchService()
+        assert service.newsapi_client is None
+
     @pytest.mark.asyncio
-    async def test_search_recent_news_empty_topic(self):
+    async def test_search_recent_news_no_api_key(self):
+        """Test search returns empty list when NewsAPI client is not initialized."""
+        with patch('app.services.web_search_service.settings') as mock_settings:
+            mock_settings.newsapi_api_key = None
+            service = WebSearchService()
+
+            articles = await service.search_recent_news("test topic", max_results=5)
+            assert articles == []
+
+    @pytest.mark.asyncio
+    @patch('app.services.web_search_service.settings')
+    async def test_search_recent_news_success(self, mock_settings):
+        """Test successful news search with NewsAPI."""
+        mock_settings.newsapi_api_key = "test_api_key"
         service = WebSearchService()
-        articles = await service.search_recent_news("")
-        assert isinstance(articles, list)
 
-    def test_is_topic_relevant_positive_cases(self):
-        service = WebSearchService()
-
-        # Test exact match in title
-        entry = {"title": "AI developments in 2024", "summary": "Some other content"}
-        assert service._is_topic_relevant(entry, "AI")
-
-        # Test exact match in summary
-        entry = {
-            "title": "Technology news",
-            "summary": "Artificial intelligence breaking news",
+        # Mock NewsAPI response
+        mock_newsapi_response = {
+            'status': 'ok',
+            'articles': [
+                {
+                    'title': 'AI breakthrough in 2024',
+                    'description': 'New AI model released',
+                    'url': 'https://example.com/article1',
+                    'publishedAt': '2024-11-01T10:00:00Z',
+                    'source': {'name': 'Tech News'}
+                },
+                {
+                    'title': 'Machine learning advances',
+                    'description': 'Latest ML developments',
+                    'url': 'https://example.com/article2',
+                    'publishedAt': '2024-11-01T09:00:00Z',
+                    'source': {'name': 'AI Today'}
+                }
+            ]
         }
-        assert service._is_topic_relevant(entry, "artificial intelligence")
 
-        # Test word match
-        entry = {"title": "Climate change impacts", "summary": "Global warming effects"}
-        assert service._is_topic_relevant(entry, "climate")
+        # Mock the NewsAPI client
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
 
-    def test_is_topic_relevant_negative_cases(self):
+        articles = await service.search_recent_news("AI", max_results=2)
+
+        assert len(articles) == 2
+        assert articles[0]['title'] == 'AI breakthrough in 2024'
+        assert articles[0]['source'] == 'Tech News'
+        assert articles[0]['url'] == 'https://example.com/article1'
+        assert isinstance(articles[0]['published'], datetime)
+        assert articles[1]['title'] == 'Machine learning advances'
+
+    @pytest.mark.asyncio
+    @patch('app.services.web_search_service.settings')
+    async def test_search_recent_news_api_error(self, mock_settings):
+        """Test error handling when NewsAPI returns an error."""
+        mock_settings.newsapi_api_key = "test_api_key"
         service = WebSearchService()
 
-        # Test no match
-        entry = {
-            "title": "Sports news today",
-            "summary": "Basketball and football updates",
+        # Mock NewsAPI to raise an exception
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.side_effect = Exception("API error")
+
+        articles = await service.search_recent_news("test", max_results=5)
+        assert articles == []
+
+    @pytest.mark.asyncio
+    @patch('app.services.web_search_service.settings')
+    async def test_search_recent_news_bad_status(self, mock_settings):
+        """Test handling of bad status from NewsAPI."""
+        mock_settings.newsapi_api_key = "test_api_key"
+        service = WebSearchService()
+
+        # Mock NewsAPI response with bad status
+        mock_newsapi_response = {
+            'status': 'error',
+            'code': 'apiKeyInvalid',
+            'message': 'Invalid API key'
         }
-        assert not service._is_topic_relevant(entry, "technology")
 
-        # Test empty entry
-        entry = {}
-        assert not service._is_topic_relevant(entry, "test")
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
 
-    def test_parse_entry_datetime_valid_formats(self):
+        articles = await service.search_recent_news("test", max_results=5)
+        assert articles == []
+
+    def test_fetch_news_api_articles_success(self):
+        """Test _fetch_news_api_articles with successful response."""
         service = WebSearchService()
 
-        # Test with None entry
-        result = service._parse_entry_datetime({})
-        assert result is None
+        mock_newsapi_response = {
+            'status': 'ok',
+            'articles': [
+                {
+                    'title': 'Climate change update',
+                    'description': 'Latest climate news',
+                    'content': 'Full article content here...',
+                    'url': 'https://example.com/climate',
+                    'publishedAt': '2024-11-01T12:00:00Z',
+                    'source': {'name': 'Environment News'}
+                }
+            ]
+        }
 
-        # Test with empty published field
-        result = service._parse_entry_datetime({"published": ""})
-        assert result is None
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
 
-        # Test with valid entry
-        result = service._parse_entry_datetime(
-            {"published": "Wed, 15 Nov 2023 10:00:00 GMT", "published_parsed": None}
-        )
-        assert isinstance(result, datetime) or result is None
+        articles = service._fetch_news_api_articles("climate change", max_results=1)
 
-    def test_filter_recent_articles(self):
+        assert len(articles) == 1
+        assert articles[0]['title'] == 'Climate change update'
+        assert articles[0]['source'] == 'Environment News'
+        assert articles[0]['summary'] == 'Latest climate news'
+
+    def test_fetch_news_api_articles_with_content_fallback(self):
+        """Test that content is used as summary when description is missing."""
         service = WebSearchService()
 
-        # Create test articles with timezone-aware dates (as the service now expects)
-        from datetime import timezone
+        mock_newsapi_response = {
+            'status': 'ok',
+            'articles': [
+                {
+                    'title': 'Test Article',
+                    'description': '',  # Empty description
+                    'content': 'This is the article content',
+                    'url': 'https://example.com/test',
+                    'publishedAt': '2024-11-01T12:00:00Z',
+                    'source': {'name': 'Test Source'}
+                }
+            ]
+        }
 
-        now = datetime.now(timezone.utc)
-        recent_date = now - timedelta(days=2)
-        old_date = now - timedelta(days=10)
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
 
-        articles = [
-            {"title": "Recent news", "published": recent_date},
-            {"title": "Old news", "published": old_date},
-            {"title": "Very recent", "published": now},
-            {"title": "No date", "published": None},
-        ]
+        articles = service._fetch_news_api_articles("test", max_results=1)
 
-        filtered = service._filter_recent_articles(articles)
+        assert articles[0]['summary'] == 'This is the article content'
 
-        # Should only include articles from last 7 days
-        assert len(filtered) == 2
-        assert filtered[0]["title"] == "Very recent"  # Newest first
-        assert filtered[1]["title"] == "Recent news"
+    def test_fetch_news_api_articles_date_parsing(self):
+        """Test proper date parsing from NewsAPI response."""
+        service = WebSearchService()
+
+        mock_newsapi_response = {
+            'status': 'ok',
+            'articles': [
+                {
+                    'title': 'Test Article',
+                    'description': 'Test description',
+                    'url': 'https://example.com/test',
+                    'publishedAt': '2024-11-01T15:30:45Z',
+                    'source': {'name': 'Test Source'}
+                }
+            ]
+        }
+
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
+
+        articles = service._fetch_news_api_articles("test", max_results=1)
+
+        assert isinstance(articles[0]['published'], datetime)
+        assert articles[0]['published'].year == 2024
+        assert articles[0]['published'].month == 11
+        assert articles[0]['published'].day == 1
+
+    def test_fetch_news_api_articles_invalid_date(self):
+        """Test handling of invalid date format."""
+        service = WebSearchService()
+
+        mock_newsapi_response = {
+            'status': 'ok',
+            'articles': [
+                {
+                    'title': 'Test Article',
+                    'description': 'Test description',
+                    'url': 'https://example.com/test',
+                    'publishedAt': 'invalid-date-format',
+                    'source': {'name': 'Test Source'}
+                }
+            ]
+        }
+
+        service.newsapi_client = MagicMock()
+        service.newsapi_client.get_everything.return_value = mock_newsapi_response
+
+        articles = service._fetch_news_api_articles("test", max_results=1)
+
+        assert articles[0]['published'] is None
 
     def test_format_news_context_empty(self):
+        """Test formatting with no articles."""
         service = WebSearchService()
         context = service.format_news_context([])
         assert "No recent news found" in context
 
     def test_format_news_context_with_articles(self):
+        """Test formatting with multiple articles."""
         service = WebSearchService()
-
-        from datetime import timezone
 
         articles = [
             {
                 "title": "AI breakthrough",
                 "summary": "New AI model released",
                 "source": "Tech News",
+                "url": "https://example.com/ai",
                 "published": datetime.now(timezone.utc),
             },
             {
                 "title": "Climate update",
                 "summary": "Global temperature rise",
                 "source": "Environment Today",
+                "url": "https://example.com/climate",
                 "published": None,
             },
         ]
@@ -129,145 +249,42 @@ class TestWebSearchService:
         assert "Tech News" in context
         assert "Climate update" in context
         assert "Environment Today" in context
+        assert "https://example.com/ai" in context
 
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_fetch_rss_articles_success(self, mock_client):
+    def test_format_news_context_truncates_summary(self):
+        """Test that long summaries are truncated."""
         service = WebSearchService()
 
-        # Mock RSS feed response
-        mock_response = MagicMock()
-        mock_response.content = """<?xml version="1.0"?>
-        <rss version="2.0">
-            <channel>
-                <item>
-                    <title>AI News Today</title>
-                    <description>Latest AI developments</description>
-                    <link>http://example.com/ai-news</link>
-                    <pubDate>Wed, 15 Nov 2023 10:00:00 GMT</pubDate>
-                </item>
-            </channel>
-        </rss>"""
+        long_summary = "A" * 300  # Summary longer than 200 chars
+        articles = [
+            {
+                "title": "Test Article",
+                "summary": long_summary,
+                "source": "Test Source",
+                "url": "https://example.com/test",
+                "published": datetime.now(timezone.utc),
+            }
+        ]
 
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
+        context = service.format_news_context(articles)
 
-        source = NewsSource("Test Source", "http://test.com/rss.xml")
-        articles = await service._fetch_rss_articles(mock_client_instance, source, "AI")
-
-        assert len(articles) >= 0  # May be 0 if topic relevance check fails
+        # Should contain truncated version with "..."
+        assert "..." in context
+        assert long_summary not in context
 
     @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_fetch_rss_articles_error(self, mock_client):
+    @patch('app.services.web_search_service.settings')
+    async def test_search_and_format_integration(self, mock_settings):
+        """Test search_and_format integration."""
+        mock_settings.newsapi_api_key = "test_api_key"
         service = WebSearchService()
-
-        # Mock HTTP error
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.side_effect = Exception("Network error")
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        source = NewsSource("Test Source", "http://test.com/rss.xml")
-        articles = await service._fetch_rss_articles(mock_client_instance, source, "AI")
-
-        assert articles == []
-
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_search_web_success(self, mock_client):
-        service = WebSearchService()
-
-        # Mock DuckDuckGo API response
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "RelatedTopics": [
-                {
-                    "Text": "AI technology advances rapidly",
-                    "FirstURL": "http://example.com/ai",
-                }
-            ]
-        }
-
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        articles = await service._search_web("AI", 2)
-
-        assert len(articles) <= 2
-        if articles:
-            assert "FirstURL" in articles[0] or "url" in articles[0]
-
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_search_web_error(self, mock_client):
-        service = WebSearchService()
-
-        # Mock HTTP error
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.side_effect = Exception("API error")
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        articles = await service._search_web("AI", 2)
-        assert articles == []
-
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_get_article_content_success(self, mock_client):
-        service = WebSearchService()
-
-        # Mock article content
-        mock_response = MagicMock()
-        mock_response.content = """
-        <html>
-            <head><title>Test Article</title></head>
-            <body>
-                <h1>Main Article</h1>
-                <p>This is the article content.</p>
-                <script>console.log('remove me');</script>
-                <style>body { color: red; }</style>
-            </body>
-        </html>
-        """
-
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        content = await service.get_article_content("http://example.com/article")
-
-        assert content is not None
-        assert "Main Article" in content
-        assert "article content" in content
-        assert "console.log" not in content  # Script should be removed
-        assert "color: red" not in content  # Style should be removed
-
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient")
-    async def test_get_article_content_error(self, mock_client):
-        service = WebSearchService()
-
-        # Mock HTTP error
-        mock_client_instance = AsyncMock()
-        mock_client_instance.get.side_effect = Exception("Network error")
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-
-        content = await service.get_article_content("http://example.com/article")
-        assert content is None
-
-    @pytest.mark.asyncio
-    async def test_search_and_format_integration(self):
-        service = WebSearchService()
-
-        # Mock the search_recent_news method
-        from datetime import timezone
 
         mock_articles = [
             {
                 "title": "Test Article",
                 "summary": "Test summary",
                 "source": "Test Source",
+                "url": "https://example.com/test",
                 "published": datetime.now(timezone.utc),
             }
         ]
@@ -284,9 +301,12 @@ class TestWebSearchIntegration:
     """Test web search integration with the hot take service"""
 
     @pytest.mark.asyncio
-    async def test_hot_take_service_with_web_search(self):
+    @patch('app.services.web_search_service.settings')
+    async def test_hot_take_service_with_web_search(self, mock_settings):
+        """Test hot take service with web search enabled."""
         from app.services.hot_take_service import HotTakeService
 
+        mock_settings.newsapi_api_key = "test_api_key"
         service = HotTakeService()
 
         # Mock the web search
@@ -313,6 +333,7 @@ class TestWebSearchIntegration:
 
     @pytest.mark.asyncio
     async def test_hot_take_service_web_search_disabled(self):
+        """Test hot take service with web search disabled."""
         from app.services.hot_take_service import HotTakeService
 
         service = HotTakeService()
@@ -331,6 +352,7 @@ class TestWebSearchIntegration:
 
     @pytest.mark.asyncio
     async def test_hot_take_service_web_search_error(self):
+        """Test hot take service continues when web search fails."""
         from app.services.hot_take_service import HotTakeService
 
         service = HotTakeService()
@@ -360,6 +382,9 @@ class TestWebSearchModels:
     """Test the updated models with web search fields"""
 
     def test_hot_take_request_with_web_search(self):
+        """Test HotTakeRequest with web search parameters."""
+        from app.models.schemas import HotTakeRequest
+
         request = HotTakeRequest(
             topic="test", style="controversial", use_web_search=True, max_articles=5
         )
@@ -369,12 +394,16 @@ class TestWebSearchModels:
         assert request.max_articles == 5
 
     def test_hot_take_request_defaults(self):
+        """Test HotTakeRequest default values."""
+        from app.models.schemas import HotTakeRequest
+
         request = HotTakeRequest(topic="test")
 
         assert request.use_web_search is False
         assert request.max_articles == 3
 
     def test_hot_take_response_with_web_search(self):
+        """Test HotTakeResponse with web search data."""
         response = HotTakeResponse(
             hot_take="test take",
             topic="test",
@@ -388,6 +417,7 @@ class TestWebSearchModels:
         assert response.news_context == "Test news context"
 
     def test_hot_take_response_without_web_search(self):
+        """Test HotTakeResponse without web search."""
         response = HotTakeResponse(
             hot_take="test take",
             topic="test",
@@ -399,44 +429,38 @@ class TestWebSearchModels:
         assert response.news_context is None
 
 
-class TestExternalAPIs:
-    """Tests that require external API access - run with pytest -m external"""
+class TestNewsAPIExternalIntegration:
+    """Tests that require external NewsAPI access - run with pytest -m external"""
 
     @pytest.mark.external
     @pytest.mark.asyncio
-    async def test_real_rss_feed_access(self):
-        """Test with a real RSS feed - requires internet connection"""
+    async def test_real_newsapi_search(self):
+        """Test with real NewsAPI - requires API key and internet connection."""
         service = WebSearchService()
 
-        # Use a reliable RSS feed
-        source = NewsSource("BBC", "http://feeds.bbci.co.uk/news/rss.xml")
-        # Need to use a real client for this test
-        import httpx
+        if not service.newsapi_client:
+            pytest.skip("NewsAPI key not configured")
 
-        async with httpx.AsyncClient() as client:
-            articles = await service._fetch_rss_articles(client, source, "news")
-
-        # Should get some articles (or none if the feed is down)
-        assert isinstance(articles, list)
-
-    @pytest.mark.external
-    @pytest.mark.asyncio
-    async def test_real_web_search(self):
-        """Test with real web search API - requires internet connection"""
-        service = WebSearchService()
-
-        articles = await service._search_web("technology", 2)
+        articles = await service.search_recent_news("technology", max_results=3)
 
         assert isinstance(articles, list)
-        # May be empty if API is down or rate limited
+        if articles:  # May be empty due to rate limits
+            assert 'title' in articles[0]
+            assert 'source' in articles[0]
+            assert 'url' in articles[0]
 
     @pytest.mark.external
     @pytest.mark.asyncio
     async def test_end_to_end_news_search(self):
-        """End-to-end test with real APIs - requires internet connection"""
+        """End-to-end test with real NewsAPI - requires API key and internet."""
         service = WebSearchService()
 
-        context = await service.search_and_format("technology", 2)
+        if not service.newsapi_client:
+            pytest.skip("NewsAPI key not configured")
+
+        context = await service.search_and_format("artificial intelligence", 2)
 
         assert isinstance(context, str)
         assert len(context) > 0
+        # Should either have news or the "no news found" message
+        assert "Recent news" in context or "No recent news found" in context
