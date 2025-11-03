@@ -12,14 +12,14 @@ class TestWebSearchService:
         assert service.max_articles == 5
         assert service.search_timeout == 15
 
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     def test_newsapi_client_initialization_with_key(self, mock_settings):
         """Test NewsAPI client initializes when API key is present."""
         mock_settings.newsapi_api_key = "test_api_key"
         service = WebSearchService()
         assert service.newsapi_client is not None
 
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     def test_newsapi_client_initialization_without_key(self, mock_settings):
         """Test NewsAPI client is None when API key is missing."""
         mock_settings.newsapi_api_key = None
@@ -29,7 +29,7 @@ class TestWebSearchService:
     @pytest.mark.asyncio
     async def test_search_recent_news_no_api_key(self):
         """Test search returns empty list when NewsAPI client is not initialized."""
-        with patch('app.services.web_search_service.settings') as mock_settings:
+        with patch("app.services.web_search_service.settings") as mock_settings:
             mock_settings.newsapi_api_key = None
             service = WebSearchService()
 
@@ -37,7 +37,7 @@ class TestWebSearchService:
             assert articles == []
 
     @pytest.mark.asyncio
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     async def test_search_recent_news_success(self, mock_settings):
         """Test successful news search with NewsAPI."""
         mock_settings.newsapi_api_key = "test_api_key"
@@ -45,23 +45,23 @@ class TestWebSearchService:
 
         # Mock NewsAPI response
         mock_newsapi_response = {
-            'status': 'ok',
-            'articles': [
+            "status": "ok",
+            "articles": [
                 {
-                    'title': 'AI breakthrough in 2024',
-                    'description': 'New AI model released',
-                    'url': 'https://example.com/article1',
-                    'publishedAt': '2024-11-01T10:00:00Z',
-                    'source': {'name': 'Tech News'}
+                    "title": "AI breakthrough in 2024",
+                    "description": "New AI model released",
+                    "url": "https://example.com/article1",
+                    "publishedAt": "2024-11-01T10:00:00Z",
+                    "source": {"name": "Tech News"},
                 },
                 {
-                    'title': 'Machine learning advances',
-                    'description': 'Latest ML developments',
-                    'url': 'https://example.com/article2',
-                    'publishedAt': '2024-11-01T09:00:00Z',
-                    'source': {'name': 'AI Today'}
-                }
-            ]
+                    "title": "Machine learning advances",
+                    "description": "Latest ML developments",
+                    "url": "https://example.com/article2",
+                    "publishedAt": "2024-11-01T09:00:00Z",
+                    "source": {"name": "AI Today"},
+                },
+            ],
         }
 
         # Mock the NewsAPI client
@@ -71,14 +71,14 @@ class TestWebSearchService:
         articles = await service.search_recent_news("AI", max_results=2)
 
         assert len(articles) == 2
-        assert articles[0]['title'] == 'AI breakthrough in 2024'
-        assert articles[0]['source'] == 'Tech News'
-        assert articles[0]['url'] == 'https://example.com/article1'
-        assert isinstance(articles[0]['published'], datetime)
-        assert articles[1]['title'] == 'Machine learning advances'
+        assert articles[0]["title"] == "AI breakthrough in 2024"
+        assert articles[0]["source"] == "Tech News"
+        assert articles[0]["url"] == "https://example.com/article1"
+        assert isinstance(articles[0]["published"], datetime)
+        assert articles[1]["title"] == "Machine learning advances"
 
     @pytest.mark.asyncio
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     async def test_search_recent_news_api_error(self, mock_settings):
         """Test error handling when NewsAPI returns an error."""
         mock_settings.newsapi_api_key = "test_api_key"
@@ -92,7 +92,7 @@ class TestWebSearchService:
         assert articles == []
 
     @pytest.mark.asyncio
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     async def test_search_recent_news_bad_status(self, mock_settings):
         """Test handling of bad status from NewsAPI."""
         mock_settings.newsapi_api_key = "test_api_key"
@@ -100,9 +100,9 @@ class TestWebSearchService:
 
         # Mock NewsAPI response with bad status
         mock_newsapi_response = {
-            'status': 'error',
-            'code': 'apiKeyInvalid',
-            'message': 'Invalid API key'
+            "status": "error",
+            "code": "apiKeyInvalid",
+            "message": "Invalid API key",
         }
 
         service.newsapi_client = MagicMock()
@@ -116,17 +116,17 @@ class TestWebSearchService:
         service = WebSearchService()
 
         mock_newsapi_response = {
-            'status': 'ok',
-            'articles': [
+            "status": "ok",
+            "articles": [
                 {
-                    'title': 'Climate change update',
-                    'description': 'Latest climate news',
-                    'content': 'Full article content here...',
-                    'url': 'https://example.com/climate',
-                    'publishedAt': '2024-11-01T12:00:00Z',
-                    'source': {'name': 'Environment News'}
+                    "title": "Climate change update",
+                    "description": "Latest climate news",
+                    "content": "Full article content here...",
+                    "url": "https://example.com/climate",
+                    "publishedAt": "2024-11-01T12:00:00Z",
+                    "source": {"name": "Environment News"},
                 }
-            ]
+            ],
         }
 
         service.newsapi_client = MagicMock()
@@ -135,26 +135,26 @@ class TestWebSearchService:
         articles = service._fetch_news_api_articles("climate change", max_results=1)
 
         assert len(articles) == 1
-        assert articles[0]['title'] == 'Climate change update'
-        assert articles[0]['source'] == 'Environment News'
-        assert articles[0]['summary'] == 'Latest climate news'
+        assert articles[0]["title"] == "Climate change update"
+        assert articles[0]["source"] == "Environment News"
+        assert articles[0]["summary"] == "Latest climate news"
 
     def test_fetch_news_api_articles_with_content_fallback(self):
         """Test that content is used as summary when description is missing."""
         service = WebSearchService()
 
         mock_newsapi_response = {
-            'status': 'ok',
-            'articles': [
+            "status": "ok",
+            "articles": [
                 {
-                    'title': 'Test Article',
-                    'description': '',  # Empty description
-                    'content': 'This is the article content',
-                    'url': 'https://example.com/test',
-                    'publishedAt': '2024-11-01T12:00:00Z',
-                    'source': {'name': 'Test Source'}
+                    "title": "Test Article",
+                    "description": "",  # Empty description
+                    "content": "This is the article content",
+                    "url": "https://example.com/test",
+                    "publishedAt": "2024-11-01T12:00:00Z",
+                    "source": {"name": "Test Source"},
                 }
-            ]
+            ],
         }
 
         service.newsapi_client = MagicMock()
@@ -162,23 +162,23 @@ class TestWebSearchService:
 
         articles = service._fetch_news_api_articles("test", max_results=1)
 
-        assert articles[0]['summary'] == 'This is the article content'
+        assert articles[0]["summary"] == "This is the article content"
 
     def test_fetch_news_api_articles_date_parsing(self):
         """Test proper date parsing from NewsAPI response."""
         service = WebSearchService()
 
         mock_newsapi_response = {
-            'status': 'ok',
-            'articles': [
+            "status": "ok",
+            "articles": [
                 {
-                    'title': 'Test Article',
-                    'description': 'Test description',
-                    'url': 'https://example.com/test',
-                    'publishedAt': '2024-11-01T15:30:45Z',
-                    'source': {'name': 'Test Source'}
+                    "title": "Test Article",
+                    "description": "Test description",
+                    "url": "https://example.com/test",
+                    "publishedAt": "2024-11-01T15:30:45Z",
+                    "source": {"name": "Test Source"},
                 }
-            ]
+            ],
         }
 
         service.newsapi_client = MagicMock()
@@ -186,26 +186,26 @@ class TestWebSearchService:
 
         articles = service._fetch_news_api_articles("test", max_results=1)
 
-        assert isinstance(articles[0]['published'], datetime)
-        assert articles[0]['published'].year == 2024
-        assert articles[0]['published'].month == 11
-        assert articles[0]['published'].day == 1
+        assert isinstance(articles[0]["published"], datetime)
+        assert articles[0]["published"].year == 2024
+        assert articles[0]["published"].month == 11
+        assert articles[0]["published"].day == 1
 
     def test_fetch_news_api_articles_invalid_date(self):
         """Test handling of invalid date format."""
         service = WebSearchService()
 
         mock_newsapi_response = {
-            'status': 'ok',
-            'articles': [
+            "status": "ok",
+            "articles": [
                 {
-                    'title': 'Test Article',
-                    'description': 'Test description',
-                    'url': 'https://example.com/test',
-                    'publishedAt': 'invalid-date-format',
-                    'source': {'name': 'Test Source'}
+                    "title": "Test Article",
+                    "description": "Test description",
+                    "url": "https://example.com/test",
+                    "publishedAt": "invalid-date-format",
+                    "source": {"name": "Test Source"},
                 }
-            ]
+            ],
         }
 
         service.newsapi_client = MagicMock()
@@ -213,7 +213,7 @@ class TestWebSearchService:
 
         articles = service._fetch_news_api_articles("test", max_results=1)
 
-        assert articles[0]['published'] is None
+        assert articles[0]["published"] is None
 
     def test_format_news_context_empty(self):
         """Test formatting with no articles."""
@@ -273,7 +273,7 @@ class TestWebSearchService:
         assert long_summary not in context
 
     @pytest.mark.asyncio
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     async def test_search_and_format_integration(self, mock_settings):
         """Test search_and_format integration."""
         mock_settings.newsapi_api_key = "test_api_key"
@@ -301,7 +301,7 @@ class TestWebSearchIntegration:
     """Test web search integration with the hot take service"""
 
     @pytest.mark.asyncio
-    @patch('app.services.web_search_service.settings')
+    @patch("app.services.web_search_service.settings")
     async def test_hot_take_service_with_web_search(self, mock_settings):
         """Test hot take service with web search enabled."""
         from app.services.hot_take_service import HotTakeService
@@ -445,9 +445,9 @@ class TestNewsAPIExternalIntegration:
 
         assert isinstance(articles, list)
         if articles:  # May be empty due to rate limits
-            assert 'title' in articles[0]
-            assert 'source' in articles[0]
-            assert 'url' in articles[0]
+            assert "title" in articles[0]
+            assert "source" in articles[0]
+            assert "url" in articles[0]
 
     @pytest.mark.external
     @pytest.mark.asyncio
