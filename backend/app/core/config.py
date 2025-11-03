@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     anthropic_api_key: Optional[str] = None
     environment: str = "development"
     debug: bool = True
+    newsapi_api_key: Optional[str] = None
     model_config = SettingsConfigDict(env_file=".env")
 
 
