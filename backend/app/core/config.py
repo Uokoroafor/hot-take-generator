@@ -7,7 +7,11 @@ class Settings(BaseSettings):
     anthropic_api_key: Optional[str] = None
     environment: str = "development"
     debug: bool = True
+    # News search API
     newsapi_api_key: Optional[str] = None
+    # Web search APIs
+    brave_api_key: Optional[str] = None
+    serper_api_key: Optional[str] = None
     model_config = SettingsConfigDict(env_file=".env")
 
 
