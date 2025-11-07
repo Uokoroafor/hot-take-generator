@@ -8,7 +8,9 @@ class HotTakeRequest(BaseModel):
     style: Optional[str] = "controversial"
     length: Optional[str] = "medium"
     use_web_search: Optional[bool] = False
+    use_news_search: Optional[bool] = False
     max_articles: Optional[int] = 3
+    web_search_provider: Optional[str] = None  # 'brave', 'serper', or None for auto
 
     @field_validator("topic")
     @classmethod
@@ -16,6 +18,13 @@ class HotTakeRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError("Topic cannot be empty")
         return v.strip()
+
+    @field_validator("web_search_provider")
+    @classmethod
+    def validate_provider(cls, v):
+        if v and v not in ["brave", "serper"]:
+            raise ValueError("web_search_provider must be 'brave', 'serper', or None")
+        return v
 
 
 class HotTakeResponse(BaseModel):
