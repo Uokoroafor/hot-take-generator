@@ -14,6 +14,7 @@ const HotTakeGenerator = () => {
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('controversial');
   const [useWebSearch, setUseWebSearch] = useState(false);
+  const [useNewsSearch, setUseNewsSearch] = useState(false);
   const [maxArticles, setMaxArticles] = useState(3);
   const [loading, setLoading] = useState(false);
   const [hotTake, setHotTake] = useState<HotTakeResponse | null>(null);
@@ -49,6 +50,7 @@ const HotTakeGenerator = () => {
           topic: topic.trim(),
           style: style,
           use_web_search: useWebSearch,
+          use_news_search: useNewsSearch,
           max_articles: maxArticles,
         }),
       });
@@ -105,7 +107,24 @@ const HotTakeGenerator = () => {
               onChange={(e) => setUseWebSearch(e.target.checked)}
             />
             <label htmlFor="useWebSearch">
-              🔍 Include recent news and headlines
+              🔍 Include web search results
+            </label>
+          </div>
+          <p className="help-text">
+            When enabled, relevant web search results will be included to provide broader context
+          </p>
+        </div>
+
+        <div className="form-group">
+          <div className="checkbox-group">
+            <input
+              type="checkbox"
+              id="useNewsSearch"
+              checked={useNewsSearch}
+              onChange={(e) => setUseNewsSearch(e.target.checked)}
+            />
+            <label htmlFor="useNewsSearch">
+              📰 Include recent news articles
             </label>
           </div>
           <p className="help-text">
@@ -113,24 +132,24 @@ const HotTakeGenerator = () => {
           </p>
         </div>
 
-        {useWebSearch && (
+        {(useWebSearch || useNewsSearch) && (
           <div className="form-group">
-            <label htmlFor="maxArticles">Number of articles to include:</label>
+            <label htmlFor="maxArticles">Number of results to include:</label>
             <select
               id="maxArticles"
               value={maxArticles}
               onChange={(e) => setMaxArticles(Number(e.target.value))}
             >
-              <option value={1}>1 article</option>
-              <option value={2}>2 articles</option>
-              <option value={3}>3 articles</option>
-              <option value={5}>5 articles</option>
+              <option value={1}>1 result</option>
+              <option value={2}>2 results</option>
+              <option value={3}>3 results</option>
+              <option value={5}>5 results</option>
             </select>
           </div>
         )}
 
         <button type="submit" disabled={loading || !topic.trim()}>
-          {loading ? 'Generating...' : `Generate Hot Take ${useWebSearch ? '📰' : '🔥'}`}
+          {loading ? 'Generating...' : `Generate Hot Take ${useWebSearch || useNewsSearch ? '📰' : '🔥'}`}
         </button>
       </form>
 
