@@ -16,7 +16,8 @@ describe('HotTakeGenerator', () => {
 
     expect(screen.getByLabelText(/topic/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/style/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/include recent news and headlines/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/include web search results/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/include recent news articles/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /generate hot take/i })).toBeInTheDocument();
   });
 
@@ -111,18 +112,24 @@ describe('HotTakeGenerator', () => {
     });
   });
 
-  it('shows news article count selector when web search is enabled', async () => {
+  it('shows results count selector when web search or news search is enabled', async () => {
     const user = userEvent.setup();
     render(<HotTakeGenerator />);
 
-    const checkbox = screen.getByLabelText(/include recent news and headlines/i);
+    const webSearchCheckbox = screen.getByLabelText(/include web search results/i);
+    const newsSearchCheckbox = screen.getByLabelText(/include recent news articles/i);
 
     // Initially hidden
-    expect(screen.queryByLabelText(/number of articles to include/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of results to include/i)).not.toBeInTheDocument();
 
-    // Show after checkbox is checked
-    await user.click(checkbox);
-    expect(screen.getByLabelText(/number of articles to include/i)).toBeInTheDocument();
+    // Show after web search checkbox is checked
+    await user.click(webSearchCheckbox);
+    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
+
+    // Should still show when web search is unchecked but news search is checked
+    await user.click(webSearchCheckbox);
+    await user.click(newsSearchCheckbox);
+    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
   });
 
   it('changes style when dropdown is selected', async () => {
@@ -138,7 +145,7 @@ describe('HotTakeGenerator', () => {
     expect(styleSelect.value).toBe('sarcastic');
   });
 
-  it('sends correct data to API including web search options', async () => {
+  it('sends correct data to API including web search and news search options', async () => {
     const user = userEvent.setup();
     const mockFetch = vi.fn().mockResolvedValueOnce({
       ok: true,
@@ -156,15 +163,17 @@ describe('HotTakeGenerator', () => {
 
     const topicInput = screen.getByLabelText(/topic/i);
     const styleSelect = screen.getByLabelText(/style/i);
-    const webSearchCheckbox = screen.getByLabelText(/include recent news and headlines/i);
+    const webSearchCheckbox = screen.getByLabelText(/include web search results/i);
+    const newsSearchCheckbox = screen.getByLabelText(/include recent news articles/i);
     const submitButton = screen.getByRole('button', { name: /generate hot take/i });
 
     await user.type(topicInput, 'Testing');
     await user.selectOptions(styleSelect, 'sarcastic');
     await user.click(webSearchCheckbox);
+    await user.click(newsSearchCheckbox);
 
-    const maxArticlesSelect = screen.getByLabelText(/number of articles to include/i);
-    await user.selectOptions(maxArticlesSelect, '5');
+    const maxResultsSelect = screen.getByLabelText(/number of results to include/i);
+    await user.selectOptions(maxResultsSelect, '5');
 
     await user.click(submitButton);
 
@@ -180,6 +189,7 @@ describe('HotTakeGenerator', () => {
             topic: 'Testing',
             style: 'sarcastic',
             use_web_search: true,
+            use_news_search: true,
             max_articles: 5,
           }),
         })
