@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Cache frontend deps
         uses: actions/cache@v4
@@ -51,7 +51,7 @@ jobs:
       UV_CACHE_DIR: .uv-cache
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Cache uv
         uses: actions/cache@v4
@@ -97,7 +97,7 @@ jobs:
     needs: [frontend, backend]  # Only runs if both pass
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Check Docker Compose Build
         run: docker compose build
