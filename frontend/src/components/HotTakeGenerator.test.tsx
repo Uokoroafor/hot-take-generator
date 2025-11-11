@@ -226,4 +226,164 @@ describe('HotTakeGenerator', () => {
       expect(screen.getByText(/news-enhanced:/i)).toBeInTheDocument();
     });
   });
+
+  it('displays empty state when no hot take has been generated', () => {
+    render(<HotTakeGenerator />);
+
+    expect(screen.getByText(/ready to generate some hot takes/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter a topic above/i)).toBeInTheDocument();
+  });
+
+  it('shows loading skeleton while generating', async () => {
+    const user = userEvent.setup();
+
+    // Mock a delayed response
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+      () => new Promise(() => {}) // Never resolves
+    );
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test topic');
+    await user.click(submitButton);
+
+    // Check for skeleton elements
+    expect(screen.getByRole('status', { busy: true })).toBeInTheDocument();
+  });
+
+  it('toggles dark mode when button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<HotTakeGenerator />);
+
+    const darkModeButton = screen.getByRole('button', { name: /toggle dark mode/i });
+
+    await user.click(darkModeButton);
+
+    // Check if dark mode class was added to document
+    expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
+
+    await user.click(darkModeButton);
+
+    expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+  });
+
+  it('shows action buttons after generating hot take', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Test hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /copy to clipboard/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /share on x\/twitter/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /save hot take/i })).toBeInTheDocument();
+    });
+  });
+
+  it('copies hot take to clipboard when copy button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Copyable hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    // Mock clipboard API
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Copyable hot take')).toBeInTheDocument();
+    });
+
+    const copyButton = screen.getByRole('button', { name: /copy to clipboard/i });
+    await user.click(copyButton);
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Copyable hot take');
+  });
+
+  it('saves hot take to localStorage when save button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Saveable hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    // Mock localStorage
+    const localStorageMock = (() => {
+      let store: Record<string, string> = {};
+      return {
+        getItem: (key: string) => store[key] || null,
+        setItem: (key: string, value: string) => { store[key] = value; },
+        clear: () => { store = {}; },
+      };
+    })();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Saveable hot take')).toBeInTheDocument();
+    });
+
+    const saveButton = screen.getByRole('button', { name: /save hot take/i });
+    await user.click(saveButton);
+
+    const saved = localStorage.getItem('savedHotTakes');
+    expect(saved).toBeTruthy();
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].hot_take).toBe('Saveable hot take');
+    }
+  });
 });
