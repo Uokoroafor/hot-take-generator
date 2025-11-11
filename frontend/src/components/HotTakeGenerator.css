@@ -250,6 +250,8 @@
   min-width: 250px;
   animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
   border-left: 4px solid;
+  color: #333;
+  font-weight: 500;
 }
 
 .toast-success {

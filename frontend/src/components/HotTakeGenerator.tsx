@@ -261,18 +261,18 @@ const HotTakeGenerator = () => {
           </p>
         </div>
 
-        {(useWebSearch || useNewsSearch) && (
+        {useNewsSearch && (
           <div className="form-group">
-            <label htmlFor="maxArticles">Number of results to include:</label>
+            <label htmlFor="maxArticles">Number of news articles to include:</label>
             <select
               id="maxArticles"
               value={maxArticles}
               onChange={(e) => setMaxArticles(Number(e.target.value))}
             >
-              <option value={1}>1 result</option>
-              <option value={2}>2 results</option>
-              <option value={3}>3 results</option>
-              <option value={5}>5 results</option>
+              <option value={1}>1 article</option>
+              <option value={2}>2 articles</option>
+              <option value={3}>3 articles</option>
+              <option value={5}>5 articles</option>
             </select>
           </div>
         )}

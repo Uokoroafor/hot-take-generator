@@ -119,7 +119,7 @@ describe('HotTakeGenerator', () => {
     });
   });
 
-  it('shows results count selector when web search or news search is enabled', async () => {
+  it('shows news articles count selector only when news search is enabled', async () => {
     const user = userEvent.setup();
     render(<HotTakeGenerator />);
 
@@ -127,16 +127,19 @@ describe('HotTakeGenerator', () => {
     const newsSearchCheckbox = screen.getByLabelText(/include recent news articles/i);
 
     // Initially hidden
-    expect(screen.queryByLabelText(/number of results to include/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
 
-    // Show after web search checkbox is checked
+    // Should NOT show when only web search is checked
     await user.click(webSearchCheckbox);
-    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
 
-    // Should still show when web search is unchecked but news search is checked
-    await user.click(webSearchCheckbox);
+    // Should show when news search is checked
     await user.click(newsSearchCheckbox);
-    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/number of news articles to include/i)).toBeInTheDocument();
+
+    // Should hide when news search is unchecked
+    await user.click(newsSearchCheckbox);
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
   });
 
   it('changes style when dropdown is selected', async () => {
@@ -179,8 +182,8 @@ describe('HotTakeGenerator', () => {
     await user.click(webSearchCheckbox);
     await user.click(newsSearchCheckbox);
 
-    const maxResultsSelect = screen.getByLabelText(/number of results to include/i);
-    await user.selectOptions(maxResultsSelect, '5');
+    const maxArticlesSelect = screen.getByLabelText(/number of news articles to include/i);
+    await user.selectOptions(maxArticlesSelect, '5');
 
     await user.click(submitButton);
 
