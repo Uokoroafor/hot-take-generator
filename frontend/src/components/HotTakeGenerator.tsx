@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './HotTakeGenerator.css';
+import config from '../config';
 
 interface HotTakeResponse {
   hot_take: string;
@@ -139,7 +140,7 @@ const HotTakeGenerator = () => {
     setHotTake(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate', {
+      const response = await fetch(`${config.apiBaseUrl}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

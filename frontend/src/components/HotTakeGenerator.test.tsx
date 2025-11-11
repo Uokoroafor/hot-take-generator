@@ -6,6 +6,13 @@ import HotTakeGenerator from './HotTakeGenerator';
 // Mock fetch globally
 global.fetch = vi.fn();
 
+// Mock config module
+vi.mock('../config', () => ({
+  default: {
+    apiBaseUrl: 'http://localhost:8000',
+  },
+}));
+
 describe('HotTakeGenerator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
