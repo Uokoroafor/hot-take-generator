@@ -96,6 +96,57 @@ DEBUG=true
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs
 
+### Docker Environment Configuration
+
+The Docker setup now properly supports environment variables for both development and production:
+
+#### Development Mode
+
+In development mode, environment variables are passed directly to the container:
+
+```bash
+# The frontend will use the environment variable from docker-compose.yml
+docker-compose up
+```
+
+The frontend container receives `VITE_API_BASE_URL=http://localhost:8000` from the compose file.
+
+#### Production Mode
+
+For production, environment variables are baked into the build at compile time:
+
+```bash
+# Option 1: Use default production API URL (http://backend:8000)
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+# Option 2: Specify custom production API URL
+VITE_API_BASE_URL=https://api.yourdomain.com docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+```
+
+#### Custom Frontend API URL
+
+To configure a different API endpoint for the frontend:
+
+**Development:**
+Edit `docker-compose.yml` line 47:
+```yaml
+environment:
+  - VITE_API_BASE_URL=http://your-custom-api:8000
+```
+
+**Production:**
+Set environment variable before building:
+```bash
+export VITE_API_BASE_URL=https://api.yourdomain.com
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+```
+
+**Important Notes:**
+- Frontend environment variables must be prefixed with `VITE_` to be accessible
+- Changes to `.env` files require rebuilding the Docker images
+- The `.env` file is excluded from Docker images for security (use build args instead)
+- Environment variables are embedded at BUILD time for production (not runtime)
+
 ### Option 3: Manual Setup
 
 #### Backend Setup
@@ -150,12 +201,24 @@ DEBUG=true
    npm install
    ```
 
-3. Start the development server:
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+   The default `.env` file contains:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
+
+   Adjust if your backend is running on a different URL.
+
+4. Start the development server:
    ```bash
    npm run dev
    ```
 
-4. Open your browser to `http://localhost:5173`
+5. Open your browser to `http://localhost:5173`
 
 ## API Endpoints
 
