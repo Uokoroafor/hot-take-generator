@@ -75,7 +75,7 @@ const HotTakeGenerator = () => {
     try {
       await navigator.clipboard.writeText(hotTake.hot_take);
       showToast('Copied to clipboard!', 'success');
-    } catch (err) {
+    } catch {
       showToast('Failed to copy', 'error');
     }
   };

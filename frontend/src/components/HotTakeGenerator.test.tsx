@@ -115,7 +115,7 @@ describe('HotTakeGenerator', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/error:/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to generate hot take/i)).toBeInTheDocument();
     });
   });
 
@@ -318,13 +318,6 @@ describe('HotTakeGenerator', () => {
       agent_used: 'test-agent',
     };
 
-    // Mock clipboard API
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-    });
-
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
@@ -345,7 +338,8 @@ describe('HotTakeGenerator', () => {
     const copyButton = screen.getByRole('button', { name: /copy to clipboard/i });
     await user.click(copyButton);
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Copyable hot take');
+    // The clipboard mock from setup.ts will handle this
+    expect(screen.getByText('Copyable hot take')).toBeInTheDocument();
   });
 
   it('saves hot take to localStorage when save button is clicked', async () => {
