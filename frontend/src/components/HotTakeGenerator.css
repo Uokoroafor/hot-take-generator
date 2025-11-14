@@ -179,7 +179,369 @@
   color: #555;
 }
 
-.form-group input[type="checkbox"]:focus {
-  outline: 2px solid #ff6b35;
+/* Visible Focus Rings for Accessibility */
+.form-group input:focus,
+.form-group select:focus,
+.form-group input[type="checkbox"]:focus,
+.generator-form button:focus,
+.action-btn:focus,
+.theme-toggle-btn:focus {
+  outline: 3px solid #ff6b35;
   outline-offset: 2px;
+}
+
+/* Visually Hidden but accessible */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+
+.theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e1e5e9;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 5rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 250px;
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+  border-left: 4px solid;
+  color: #333;
+  font-weight: 500;
+}
+
+.toast-success {
+  border-left-color: #28a745;
+}
+
+.toast-error {
+  border-left-color: #dc3545;
+}
+
+.toast-info {
+  border-left-color: #17a2b8;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.empty-state h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.empty-hint {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.empty-hint kbd {
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* Loading Skeleton */
+.skeleton {
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-header,
+.skeleton-text,
+.skeleton-tag {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-header {
+  height: 28px;
+  width: 200px;
+  margin-bottom: 1rem;
+}
+
+.skeleton-text {
+  height: 20px;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.skeleton-metadata {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.skeleton-tag {
+  height: 20px;
+  width: 120px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Result Header with Action Buttons */
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.result-header h3 {
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  background: white;
+  border: 2px solid #e1e5e9;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  color: #333;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: #f8f9fa;
+  border-color: #ff6b35;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+/* Dark Mode Styles */
+.dark-mode {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.dark-mode .hot-take-generator {
+  color: #e0e0e0;
+}
+
+.dark-mode .generator-form {
+  background: #2a2a2a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .form-group label {
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input::placeholder {
+  color: #888;
+}
+
+.dark-mode .help-text {
+  color: #aaa;
+}
+
+.dark-mode .generator-form button:not(:disabled) {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+.dark-mode .hot-take-result,
+.dark-mode .empty-state {
+  background: #2a2a2a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
+}
+
+.dark-mode .hot-take-result h3,
+.dark-mode .empty-state h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .hot-take-result blockquote {
+  background: #1a1a1a;
+  color: #ccc;
+}
+
+.dark-mode .metadata p {
+  color: #aaa;
+}
+
+.dark-mode .metadata strong {
+  color: #e0e0e0;
+}
+
+.dark-mode .action-btn {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .action-btn:hover {
+  background: #333;
+  border-color: #ff6b35;
+}
+
+.dark-mode .news-context {
+  border-color: #444;
+}
+
+.dark-mode .news-context summary {
+  background: #1a1a1a;
+  border-color: #444;
+}
+
+.dark-mode .news-context summary:hover {
+  background: #333;
+}
+
+.dark-mode .news-content {
+  background: #2a2a2a;
+}
+
+.dark-mode .news-content pre {
+  color: #aaa;
+}
+
+.dark-mode .theme-toggle-btn {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .toast {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.dark-mode .empty-hint kbd {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .skeleton-header,
+.dark-mode .skeleton-text,
+.dark-mode .skeleton-tag {
+  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
 }

@@ -14,6 +14,9 @@ services:
   frontend:
     build:
       target: production  # Use production build stage
+      args:
+        # Set production API URL - override with environment variable if needed
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://backend:8000}
     ports:
       - "80:80"  # Serve on port 80 in production
     volumes: []  # Remove development volumes

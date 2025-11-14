@@ -1,11 +1,73 @@
-# React + TypeScript + Vite
+# Hot Take Generator - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite application for generating hot takes on any topic.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🔥 Generate hot takes in various styles
+- 🔍 Web search integration
+- 📰 News search integration
+- 🌙 Dark mode support
+- 📋 Copy, share, and save hot takes
+- ⌨️ Keyboard shortcuts
+- ♿ Accessible UI with ARIA support
+
+## Setup
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment variables:**
+   Copy the example environment file and update with your values:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Available environment variables:
+   - `VITE_API_BASE_URL`: Backend API base URL (default: `http://localhost:8000`)
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+## Environment Configuration
+
+The application uses environment variables for configuration. All environment variables must be prefixed with `VITE_` to be accessible in the client code.
+
+**Files:**
+- `.env` - Your local environment configuration (not committed to git)
+- `.env.example` - Example configuration template (committed to git)
+- `src/config.ts` - Centralized configuration with defaults
+
+**Usage:**
+The `config.ts` file provides type-safe access to environment variables:
+```typescript
+import config from './config';
+
+fetch(`${config.apiBaseUrl}/api/endpoint`);
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests
+- `npm run test:ui` - Run tests with UI
+- `npm run test:coverage` - Run tests with coverage
+- `npm run lint` - Lint code
+
+## Tech Stack
+
+This project uses:
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Vitest** - Testing framework
+- **@testing-library/react** - Testing utilities
 
 ## React Compiler
 

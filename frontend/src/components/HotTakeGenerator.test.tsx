@@ -6,6 +6,13 @@ import HotTakeGenerator from './HotTakeGenerator';
 // Mock fetch globally
 global.fetch = vi.fn();
 
+// Mock config module
+vi.mock('../config', () => ({
+  default: {
+    apiBaseUrl: 'http://localhost:8000',
+  },
+}));
+
 describe('HotTakeGenerator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -108,11 +115,11 @@ describe('HotTakeGenerator', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/error:/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to generate hot take/i)).toBeInTheDocument();
     });
   });
 
-  it('shows results count selector when web search or news search is enabled', async () => {
+  it('shows news articles count selector only when news search is enabled', async () => {
     const user = userEvent.setup();
     render(<HotTakeGenerator />);
 
@@ -120,16 +127,19 @@ describe('HotTakeGenerator', () => {
     const newsSearchCheckbox = screen.getByLabelText(/include recent news articles/i);
 
     // Initially hidden
-    expect(screen.queryByLabelText(/number of results to include/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
 
-    // Show after web search checkbox is checked
+    // Should NOT show when only web search is checked
     await user.click(webSearchCheckbox);
-    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
 
-    // Should still show when web search is unchecked but news search is checked
-    await user.click(webSearchCheckbox);
+    // Should show when news search is checked
     await user.click(newsSearchCheckbox);
-    expect(screen.getByLabelText(/number of results to include/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/number of news articles to include/i)).toBeInTheDocument();
+
+    // Should hide when news search is unchecked
+    await user.click(newsSearchCheckbox);
+    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
   });
 
   it('changes style when dropdown is selected', async () => {
@@ -172,8 +182,8 @@ describe('HotTakeGenerator', () => {
     await user.click(webSearchCheckbox);
     await user.click(newsSearchCheckbox);
 
-    const maxResultsSelect = screen.getByLabelText(/number of results to include/i);
-    await user.selectOptions(maxResultsSelect, '5');
+    const maxArticlesSelect = screen.getByLabelText(/number of news articles to include/i);
+    await user.selectOptions(maxArticlesSelect, '5');
 
     await user.click(submitButton);
 
@@ -225,5 +235,159 @@ describe('HotTakeGenerator', () => {
       expect(screen.getByText(/news sources used/i)).toBeInTheDocument();
       expect(screen.getByText(/news-enhanced:/i)).toBeInTheDocument();
     });
+  });
+
+  it('displays empty state when no hot take has been generated', () => {
+    render(<HotTakeGenerator />);
+
+    expect(screen.getByText(/ready to generate some hot takes/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter a topic above/i)).toBeInTheDocument();
+  });
+
+  it('shows loading skeleton while generating', async () => {
+    const user = userEvent.setup();
+
+    // Mock a delayed response
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+      () => new Promise(() => {}) // Never resolves
+    );
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test topic');
+    await user.click(submitButton);
+
+    // Check for skeleton elements
+    expect(screen.getByRole('status', { busy: true })).toBeInTheDocument();
+  });
+
+  it('toggles dark mode when button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<HotTakeGenerator />);
+
+    const darkModeButton = screen.getByRole('button', { name: /toggle dark mode/i });
+
+    await user.click(darkModeButton);
+
+    // Check if dark mode class was added to document
+    expect(document.documentElement.classList.contains('dark-mode')).toBe(true);
+
+    await user.click(darkModeButton);
+
+    expect(document.documentElement.classList.contains('dark-mode')).toBe(false);
+  });
+
+  it('shows action buttons after generating hot take', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Test hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /copy to clipboard/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /share on x\/twitter/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /save hot take/i })).toBeInTheDocument();
+    });
+  });
+
+  it('copies hot take to clipboard when copy button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Copyable hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Copyable hot take')).toBeInTheDocument();
+    });
+
+    const copyButton = screen.getByRole('button', { name: /copy to clipboard/i });
+    await user.click(copyButton);
+
+    // The clipboard mock from setup.ts will handle this
+    expect(screen.getByText('Copyable hot take')).toBeInTheDocument();
+  });
+
+  it('saves hot take to localStorage when save button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResponse = {
+      hot_take: 'Saveable hot take',
+      topic: 'Test',
+      style: 'controversial',
+      agent_used: 'test-agent',
+    };
+
+    // Mock localStorage
+    const localStorageMock = (() => {
+      let store: Record<string, string> = {};
+      return {
+        getItem: (key: string) => store[key] || null,
+        setItem: (key: string, value: string) => { store[key] = value; },
+        clear: () => { store = {}; },
+      };
+    })();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'Test');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Saveable hot take')).toBeInTheDocument();
+    });
+
+    const saveButton = screen.getByRole('button', { name: /save hot take/i });
+    await user.click(saveButton);
+
+    const saved = localStorage.getItem('savedHotTakes');
+    expect(saved).toBeTruthy();
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].hot_take).toBe('Saveable hot take');
+    }
   });
 });
