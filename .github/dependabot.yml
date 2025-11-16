@@ -5,82 +5,114 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "saturday"
       time: "09:00"
+      timezone: "Europe/London"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "frontend"
-    # Group minor and patch updates together to reduce PR noise
+    labels: ["dependencies", "frontend"]
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    reviewers: ["uokoroafor"]
     groups:
+      core-frontend:
+        patterns: ["react", "react-dom", "vite"]
+        update-types: ["minor", "patch"]
       development-dependencies:
         dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
+        update-types: ["minor", "patch"]
       production-dependencies:
         dependency-type: "production"
-        update-types:
-          - "patch"
-    # Allow security updates to be opened immediately
+        update-types: ["patch"]
     allow:
       - dependency-type: "all"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     versioning-strategy: increase
+    pull-request-branch-name:
+      separator: "/"
+    rebase-strategy: "auto"
 
-  # Backend Python dependencies
-  - package-ecosystem: "pip"
+  # Backend Python dependencies (uv)
+  - package-ecosystem: "uv"
     directory: "/backend"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "sunday"
       time: "09:00"
+      timezone: "Europe/London"
     open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "backend"
-    # Group minor and patch updates together
+    labels: ["dependencies", "backend", "python"]
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    reviewers: ["uokoroafor"]
     groups:
       python-dependencies:
-        update-types:
-          - "minor"
-          - "patch"
+        update-types: ["minor", "patch"]
     allow:
       - dependency-type: "all"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    versioning-strategy: lockfile-only
+    pull-request-branch-name:
+      separator: "/"
+    rebase-strategy: "auto"
 
   # Frontend Dockerfile
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"    # action 2: lower noise
+      day: "sunday"
       time: "09:00"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "docker"
-      - "frontend"
+    labels: ["dependencies", "docker", "frontend"]
+    commit-message:          # action 3
+      prefix: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
 
   # Backend Dockerfile
   - package-ecosystem: "docker"
     directory: "/backend"
+    # For consistency with npm/uv configs
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
+      day: "saturday" 
       time: "09:00"
+      timezone: "Europe/London"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "docker"
-      - "backend"
+    labels: ["dependencies", "docker", "backend"]
+    commit-message:          # action 3
+      prefix: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    # To Docker and GitHub Actions configs
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "sunday"
       time: "09:00"
+      timezone: "Europe/London" 
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "github-actions"
+    labels: ["dependencies", "github-actions"]
+    commit-message:          # action 3
+      prefix: "deps"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    # To Docker and GitHub Actions configs
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
