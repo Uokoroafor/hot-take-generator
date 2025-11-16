@@ -115,7 +115,7 @@ const HistoryPage = () => {
       {filteredTakes.length === 0 ? (
         <div className="empty-state">
           <p>
-            {savedTakes.length === 0 
+            {savedTakes.length === 0
               ? '📭 No saved hot takes yet. Generate and save some from the Generate page!'
               : '🔍 No hot takes match your filters.'}
           </p>

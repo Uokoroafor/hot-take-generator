@@ -1,6 +1,6 @@
 # TODOs / Roadmap
 
-A living roadmap for upcoming features, improvements, and refinements to **Hot Take Generator**.  
+A living roadmap for upcoming features, improvements, and refinements to **Hot Take Generator**.
 Each section includes short-term and long-term goals to guide development.
 
 ---
@@ -115,5 +115,5 @@ Each section includes short-term and long-term goals to guide development.
 
 ---
 
-_This roadmap evolves as development continues.  
+_This roadmap evolves as development continues.
 Contributions, ideas, and spicy opinions are always welcome!_

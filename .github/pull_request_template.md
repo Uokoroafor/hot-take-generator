@@ -19,4 +19,4 @@
 ## Type
 - [ ] Feature
 - [ ] Fix
-- [ ] Dependency update (Dependabot) <!-- leave checked for bot PRs -->
+- [x] Dependency update (Dependabot) <!-- leave checked for bot PRs -->
