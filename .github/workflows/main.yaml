@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
-      
+
       - name: Cache frontend deps
         uses: actions/cache@v4
         with:
@@ -21,22 +21,22 @@ jobs:
           key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json', 'frontend/pnpm-lock.yaml', 'frontend/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-frontend-
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
-      
+
       - name: Install frontend dependencies
         run: |
           cd frontend
           npm install
-      
+
       - name: Lint frontend
         run: |
           cd frontend
           npm run lint
-      
+
       - name: Test frontend
         run: |
           cd frontend
@@ -52,7 +52,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
-      
+
       - name: Cache uv
         uses: actions/cache@v4
         with:
@@ -60,7 +60,7 @@ jobs:
           key: ${{ runner.os }}-uv-${{ hashFiles('backend/pyproject.toml', 'backend/uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-uv-
-      
+
       - name: Cache backend venv
         uses: actions/cache@v4
         with:
@@ -68,25 +68,25 @@ jobs:
           key: ${{ runner.os }}-backend-venv-${{ hashFiles('backend/pyproject.toml', 'backend/uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-backend-venv-
-      
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: 3.12
-      
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
-      
+
       - name: Install backend dependencies
         run: |
           cd backend
           uv sync --frozen
-      
+
       - name: Lint backend with ruff
         run: |
           cd backend
           uvx ruff check .
-      
+
       - name: Run backend tests
         run: |
           cd backend
@@ -98,6 +98,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
-      
+
       - name: Check Docker Compose Build
         run: docker compose build

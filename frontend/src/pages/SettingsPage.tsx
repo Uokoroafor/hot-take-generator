@@ -58,11 +58,11 @@ const SettingsPage = () => {
       localStorage.removeItem('telemetryOptIn');
       localStorage.removeItem('safeMode');
       // Don't reset darkMode as it's user preference
-      
+
       setApiBaseUrl(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000');
       setTelemetryOptIn(false);
       setSafeMode(false);
-      
+
       saveSettings();
     }
   };
@@ -118,7 +118,7 @@ const SettingsPage = () => {
 
         <section className="settings-section">
           <h2>Privacy & Safety</h2>
-          
+
           <div className="form-group">
             <div className="checkbox-group">
               <input
@@ -170,7 +170,7 @@ const SettingsPage = () => {
                 Clear
               </button>
             </div>
-            
+
             <div className="data-item">
               <div>
                 <strong>Style Presets</strong>

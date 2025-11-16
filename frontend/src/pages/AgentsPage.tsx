@@ -50,7 +50,7 @@ const AgentsPage = () => {
   const testAgent = async (agentName: string) => {
     setTestingAgent(agentName);
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(`${config.apiBaseUrl}/api/generate`, {
         method: 'POST',
@@ -61,14 +61,14 @@ const AgentsPage = () => {
           agent_type: agentName,
         }),
       });
-      
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       if (response.ok) {
         // Update agent with response time
-        setAgents(prev => prev.map(a => 
-          a.name === agentName 
+        setAgents(prev => prev.map(a =>
+          a.name === agentName
             ? { ...a, avgResponseTime: responseTime, lastUsed: new Date().toISOString() }
             : a
         ));
@@ -121,22 +121,22 @@ const AgentsPage = () => {
                   <span className="badge badge-success">Default</span>
                 )}
               </div>
-              
+
               <p className="agent-description">{agent.description}</p>
-              
+
               <div className="agent-details">
                 <div className="detail-item">
                   <span className="detail-label">Model:</span>
                   <span className="detail-value">{agent.model}</span>
                 </div>
-                
+
                 {agent.avgResponseTime && (
                   <div className="detail-item">
                     <span className="detail-label">Avg Response:</span>
                     <span className="detail-value">{agent.avgResponseTime}ms</span>
                   </div>
                 )}
-                
+
                 {agent.lastUsed && (
                   <div className="detail-item">
                     <span className="detail-label">Last Used:</span>

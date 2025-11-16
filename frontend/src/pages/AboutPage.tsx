@@ -12,12 +12,12 @@ const AboutPage = () => {
         <section className="about-section">
           <h2>What is this?</h2>
           <p>
-            The Hot Take Generator is a full-stack application that uses AI to generate 
+            The Hot Take Generator is a full-stack application that uses AI to generate
             spicy, controversial, and thought-provoking opinions on any topic you can think of.
           </p>
           <p>
-            Inspired by <a href="https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast">The Arsenal Opinion Podcast</a> and their "Hottest of Takes" segment, 
-            this tool captures that same spirit of bold, entertaining commentary using the 
+            Inspired by <a href="https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast">The Arsenal Opinion Podcast</a> and their "Hottest of Takes" segment,
+            this tool captures that same spirit of bold, entertaining commentary using the
             power of AI language models.
           </p>
         </section>
@@ -63,7 +63,7 @@ const AboutPage = () => {
         <section className="about-section">
           <h2>Open Source</h2>
           <p>
-            This project is open source and available on GitHub. Contributions, issues, 
+            This project is open source and available on GitHub. Contributions, issues,
             and feature requests are welcome!
           </p>
           <div className="links-section">

@@ -58,7 +58,7 @@ const SourcesPage = () => {
 
       <div className="info-box">
         <p>
-          This page will display sources once the backend returns structured data about 
+          This page will display sources once the backend returns structured data about
           web and news searches. Currently, this feature is being developed.
         </p>
       </div>
@@ -95,7 +95,7 @@ const SourcesPage = () => {
       {filteredSources.length === 0 ? (
         <div className="empty-state">
           <p>
-            {sources.length === 0 
+            {sources.length === 0
               ? '📭 No sources tracked yet. Generate hot takes with web or news search enabled!'
               : '🔍 No sources match your filter.'}
           </p>

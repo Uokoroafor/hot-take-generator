@@ -235,6 +235,6 @@ class TestPerformance:
         avg_response_time = sum(result["response_time"] for result in results) / len(
             results
         )
-        assert avg_response_time < 1.0, (
-            f"Average response time too slow: {avg_response_time}s"
-        )
+        assert (
+            avg_response_time < 1.0
+        ), f"Average response time too slow: {avg_response_time}s"

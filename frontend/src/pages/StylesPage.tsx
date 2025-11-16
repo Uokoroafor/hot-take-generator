@@ -50,9 +50,9 @@ const StylesPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingId) {
-      const updated = presets.map(p => 
+      const updated = presets.map(p =>
         p.id === editingId ? { ...formData, id: editingId } : p
       );
       savePresets(updated);
@@ -63,7 +63,7 @@ const StylesPage = () => {
       };
       savePresets([...presets, newPreset]);
     }
-    
+
     resetForm();
   };
 
@@ -122,7 +122,7 @@ const StylesPage = () => {
       {showForm && (
         <form onSubmit={handleSubmit} className="preset-form">
           <h3>{editingId ? 'Edit Style' : 'New Style'}</h3>
-          
+
           <div className="form-group">
             <label htmlFor="name">Style Name:</label>
             <input

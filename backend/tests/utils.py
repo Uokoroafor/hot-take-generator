@@ -113,9 +113,9 @@ class TestDataFactory:
 def assert_response_format(response_data: Dict[str, Any]):
     """Assert that a response has the correct format"""
     required_fields = {"hot_take", "topic", "style", "agent_used"}
-    assert all(field in response_data for field in required_fields), (
-        f"Response missing required fields. Expected: {required_fields}, Got: {response_data.keys()}"
-    )
+    assert all(
+        field in response_data for field in required_fields
+    ), f"Response missing required fields. Expected: {required_fields}, Got: {response_data.keys()}"
 
     assert isinstance(response_data["hot_take"], str), "hot_take should be a string"
     assert isinstance(response_data["topic"], str), "topic should be a string"
