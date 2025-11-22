@@ -42,4 +42,7 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "pre-commit>=3.5.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.0",
+    "mkdocstrings[python]>=0.30.1",
 ]
