@@ -390,6 +390,13 @@ make health             # Check if services are running
 make clean              # Clean up build artefacts
 ```
 
+### Documentation
+```bash
+cd backend
+uv run mkdocs serve     # Serve docs locally at http://localhost:8000
+uv run mkdocs build     # Build static site to backend/site/
+```
+
 ## Troubleshooting
 
 ### Common Issues
