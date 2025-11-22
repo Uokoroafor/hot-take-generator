@@ -92,6 +92,11 @@ jobs:
           cd backend
           uv run pytest
 
+      - name: Build docs
+        run: |
+          cd backend
+          uv run mkdocs build --strict
+
   docker:
     runs-on: ubuntu-latest
     needs: [frontend, backend]  # Only runs if both pass
