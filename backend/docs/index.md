@@ -6,9 +6,9 @@ This backend powers the Hot Take Generator experience. A FastAPI service orchest
 
 - **Production-ready FastAPI app** with strict schemas, CORS, health endpoints, and typed responses.
 - **Pluggable agents** managed by `HotTakeService`, letting you add or swap LLM providers.
-- **Search integrations** that combine RSS/news context (NewsAPI) with configurable web search providers (Brave, Serper).
+- **Search integrations** that combine NewsAPI-powered context with configurable web search providers (Brave, Serper).
 - **Unified prompt strategy** so the tone of each take stays consistent regardless of agent choice.
-- **Full coverage tests** under `backend/tests` verifying routes, services, and provider fallbacks.
+- **Comprehensive tests** under `backend/tests` covering routes, services, and provider fallbacks.
 
 ## Repository Layout
 
