@@ -4,7 +4,7 @@ The backend is a FastAPI application that receives hot-take requests, orchestrat
 
 ## Request Flow
 
-1. **Routes** (`app.api.routes`): `/api/generate` accepts a `HotTakeRequest` and validates payloads via Pydantic. Additional `/api/agents` and `/api/styles` endpoints expose metadata for the frontend.
+1. **Routes** (`app.api.routes`): `/api/generate` accepts a `HotTakeRequest` and validates payloads via Pydantic (supports `use_web_search`, `use_news_search`, `max_articles`, and `web_search_provider`). Additional `/api/agents` and `/api/styles` endpoints expose metadata for the frontend. `length` is currently a placeholder and not yet used in prompts.
 2. **Service layer** (`app.services.hot_take_service.HotTakeService`): Chooses an AI agent, gathers optional web/news context, and formats everything required for the LLM call.
 3. **Agents** (`app.agents.*`): Concrete implementations for OpenAI and Anthropic inherit from a shared `BaseAgent`. Each agent:
    - fetches unified prompts from `PromptManager`

@@ -62,11 +62,15 @@ The client sends a POST request to `/api/generate`:
   "style": "controversial",
   "length": "medium",
   "use_web_search": true,
-  "agent_name": "openai"
+  "use_news_search": true,
+  "max_articles": 3,
+  "web_search_provider": "brave"
 }
 ```
 
-The route validates the request using Pydantic schemas and delegates to `HotTakeService`.
+The route validates the request using Pydantic schemas and delegates to `HotTakeService`. Agent selection is automatic between the available providers (exposed via `/api/agents`).
+
+> Note: `length` is currently a placeholder; prompts do not yet vary by length.
 
 ### 2. Hot Take Service (`app/services/hot_take_service.py`)
 
@@ -84,7 +88,7 @@ The orchestration layer that:
 
 #### News Search Service (`app/services/news_search_service.py`)
 
-- Queries NewsAPI for recent articles on the topic
+- Queries NewsAPI for recent articles on the topic (no RSS ingestion)
 - Extracts headlines, descriptions, and sources
 - Formats as context string for the LLM
 
