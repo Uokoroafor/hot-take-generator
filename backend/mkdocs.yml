@@ -24,9 +24,11 @@ nav:
   - Getting Started: getting-started.md
   - Backend:
       - Overview: backend/index.md
+      - Architecture: architecture.md
       - Python API Reference: backend/api.md
   - Frontend:
       - Overview: frontend/index.md
+  - CI/CD: ci-cd.md
 
 plugins:
   - search
