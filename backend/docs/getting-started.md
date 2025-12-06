@@ -47,12 +47,20 @@ make lint             # executes formatters/linters defined in Makefile (if conf
 
 ## Docker Workflow
 
+The backend Dockerfile uses a multi-stage build for production-ready images:
+
 ```bash
 make setup-env                    # copies backend/.env.example to backend/.env
 docker-compose up                 # dev stack with hot reloading
 docker-compose -f docker-compose.yml \
                -f docker-compose.prod.yml up --build   # production-like build
 ```
+
+**Multi-Stage Build Benefits:**
+- Dependencies are installed in a builder stage with build tools
+- Runtime stage contains only the app and virtual environment
+- Final image runs as non-root user for enhanced security
+- Smaller image size (~509MB) compared to single-stage builds
 
 For production images, set `VITE_API_BASE_URL` before building so the frontend knows where to reach the API.
 

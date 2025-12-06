@@ -54,10 +54,14 @@ Validates the FastAPI backend:
 
 ### Docker Job
 
-Validates Docker build (runs only after frontend and backend pass):
+Validates multi-stage Docker build (runs only after frontend and backend pass):
 
 1. **Checkout** - Clone repository
-2. **Build** - Run `docker compose build`
+2. **Build** - Run `docker compose build` to validate:
+   - Builder stage dependency installation
+   - Runtime stage image creation
+   - Multi-stage artifact copying
+   - Non-root user configuration
 
 ## Caching Strategy
 
