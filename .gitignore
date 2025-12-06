@@ -64,6 +64,10 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
 
 # OS generated files
 .DS_Store
