@@ -1,7 +1,8 @@
 # Hot Take Generator
 
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)](#testing)
-[![Coverage](https://img.shields.io/badge/coverage-make%20test--coverage-informational?style=flat-square)](#testing)
+[![CI Pipeline](https://github.com/Uokoroafor/hot-take-generator/actions/workflows/main.yaml/badge.svg)](https://github.com/Uokoroafor/hot-take-generator/actions)
+[![codecov](https://codecov.io/gh/Uokoroafor/hot-take-generator/branch/main/graph/badge.svg)](https://codecov.io/gh/Uokoroafor/hot-take-generator)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
 A full-stack application that generates spicy opinions on any topic using AI agents powered by OpenAI and Anthropic models.
 
