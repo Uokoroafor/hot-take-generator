@@ -98,7 +98,7 @@ DEBUG=true
 
 ### Docker Environment Configuration
 
-The Docker setup now properly supports environment variables for both development and production:
+The Docker setup uses multi-stage builds for optimized production images and properly supports environment variables for both development and production:
 
 #### Development Mode
 

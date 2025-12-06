@@ -180,3 +180,34 @@ Add to `StylePrompts.BASE_PROMPTS` in `app/core/prompts.py`
 ### New Search Provider
 1. Implement `SearchProvider` interface
 2. Add to `WebSearchService.providers` list
+
+## Docker Build Architecture
+
+The backend uses a multi-stage Docker build for optimal image size and security:
+
+### Builder Stage
+- Base: `python:3.14-slim`
+- Installs build dependencies (`build-essential`)
+- Installs uv package manager
+- Runs `uv sync --frozen` to create virtual environment
+- Build artifacts: `/app/.venv` and `/root/.local/share/uv`
+
+### Runtime Stage
+- Base: `python:3.14-slim` (fresh image)
+- Installs only runtime dependencies (curl, uv)
+- Copies virtual environment from builder stage
+- Copies uv-managed Python interpreter
+- Runs as non-root user `app`
+- Final image excludes build tools (gcc, make, etc.)
+
+### Benefits
+- **Smaller image size** - Build dependencies not included in final image
+- **Better security** - Minimal attack surface, runs as non-root
+- **Faster deployments** - Smaller images pull and start faster
+- **Layer caching** - Dependencies cached separately from app code
+
+### Volume Exclusions
+
+In development (docker-compose), these directories are excluded from volume mounts to preserve the built artifacts:
+- `/app/.venv` - Virtual environment from image
+- `/app/.uv` - UV cache directory
