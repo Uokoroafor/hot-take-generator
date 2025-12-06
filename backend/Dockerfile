@@ -1,19 +1,21 @@
 # Backend Dockerfile for Hot Take Generator
-FROM python:3.14-slim
+# Multi-stage build for smaller, more secure images
+
+# ============================================
+# Builder Stage: Install dependencies
+# ============================================
+FROM python:3.14-slim AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_CACHE_DIR=/tmp/uv-cache
 
-# Install system dependencies
+# Install build dependencies and uv
 RUN apt-get update && apt-get install -y \
-    curl \
     build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install UV package manager
-RUN pip install uv
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir uv
 
 # Set work directory
 WORKDIR /app
@@ -21,17 +23,44 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml .python-version uv.lock ./
 
+# Install dependencies with uv sync
+RUN uv sync --frozen
 
+# ============================================
+# Runtime Stage: Slim production image
+# ============================================
+FROM python:3.14-slim AS runtime
 
-# Copy application code
-COPY . .
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install runtime dependencies (curl for health checks and uv)
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir uv
 
 # Create non-root user
-RUN useradd --create-home --shell /bin/bash app \
-    && chown -R app:app /app
+RUN useradd --create-home --shell /bin/bash app
+
+# Set work directory
+WORKDIR /app
+
+# Copy uv-managed Python from builder (required for venv symlinks)
+COPY --from=builder /root/.local/share/uv /root/.local/share/uv
+
+# Copy virtual environment from builder
+COPY --from=builder --chown=app:app /app/.venv /app/.venv
+
+# Grant app user access to uv Python installation
+RUN chmod a+rx /root && chmod -R a+rX /root/.local
+
+# Copy application code
+COPY --chown=app:app . .
+
+# Switch to non-root user
 USER app
-# Install dependencies
-RUN uv sync --frozen
 
 # Expose port
 EXPOSE 8000
