@@ -17,6 +17,7 @@ services:
     volumes:
       # Mount source code for development hot-reload
       - ./backend:/app
+      - /app/.venv  # Exclude virtual environment from volume mount
       - /app/.uv  # Exclude UV cache from volume mount
     depends_on:
       - redis
