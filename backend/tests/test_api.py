@@ -14,6 +14,50 @@ class TestMainEndpoints:
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {"status": "healthy"}
 
+    @patch("app.main.settings")
+    def test_ready_check_with_openai_key(self, mock_settings, client):
+        """Test /ready endpoint when OpenAI API key is configured"""
+        mock_settings.openai_api_key = "test-openai-key"
+        mock_settings.anthropic_api_key = None
+
+        response = client.get("/ready")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"status": "ready"}
+
+    @patch("app.main.settings")
+    def test_ready_check_with_anthropic_key(self, mock_settings, client):
+        """Test /ready endpoint when Anthropic API key is configured"""
+        mock_settings.openai_api_key = None
+        mock_settings.anthropic_api_key = "test-anthropic-key"
+
+        response = client.get("/ready")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"status": "ready"}
+
+    @patch("app.main.settings")
+    def test_ready_check_with_both_keys(self, mock_settings, client):
+        """Test /ready endpoint when both API keys are configured"""
+        mock_settings.openai_api_key = "test-openai-key"
+        mock_settings.anthropic_api_key = "test-anthropic-key"
+
+        response = client.get("/ready")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {"status": "ready"}
+
+    @patch("app.main.settings")
+    def test_ready_check_missing_all_keys(self, mock_settings, client):
+        """Test /ready endpoint when no API keys are configured"""
+        mock_settings.openai_api_key = None
+        mock_settings.anthropic_api_key = None
+
+        response = client.get("/ready")
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        data = response.json()
+        assert data["status"] == "not_ready"
+        assert "missing_configuration" in data
+        assert len(data["missing_configuration"]) > 0
+        assert any("AI provider" in msg for msg in data["missing_configuration"])
+
 
 class TestHotTakeEndpoints:
     def test_get_agents(self, client):
