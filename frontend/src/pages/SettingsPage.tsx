@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Pages.css';
 
 const SettingsPage = () => {
+  const defaultApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [telemetryOptIn, setTelemetryOptIn] = useState(false);
@@ -15,7 +16,7 @@ const SettingsPage = () => {
   const loadSettings = () => {
     // API Base URL (from env or localStorage override)
     const savedApiUrl = localStorage.getItem('apiBaseUrl');
-    setApiBaseUrl(savedApiUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000');
+    setApiBaseUrl(savedApiUrl || defaultApiBaseUrl);
 
     // Dark Mode
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -32,7 +33,7 @@ const SettingsPage = () => {
 
   const saveSettings = () => {
     // Save API Base URL
-    if (apiBaseUrl !== import.meta.env.VITE_API_BASE_URL) {
+    if (apiBaseUrl !== defaultApiBaseUrl) {
       localStorage.setItem('apiBaseUrl', apiBaseUrl);
     } else {
       localStorage.removeItem('apiBaseUrl');
@@ -59,7 +60,7 @@ const SettingsPage = () => {
       localStorage.removeItem('safeMode');
       // Don't reset darkMode as it's user preference
 
-      setApiBaseUrl(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000');
+      setApiBaseUrl(defaultApiBaseUrl);
       setTelemetryOptIn(false);
       setSafeMode(false);
 
