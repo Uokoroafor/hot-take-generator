@@ -8,7 +8,7 @@ Each section includes short-term and long-term goals to guide development.
 ## Deployment & Infrastructure
 
 ### Short Term
-- [ ] Create multi-stage production Dockerfile (builder -> slim runtime) - _Dockerfiles exist but need optimization_
+- [x] Create multi-stage production Dockerfile (builder -> slim runtime) - _Multi-stage build implemented with builder and runtime stages, non-root user, and optimized for production_
 - [x] Add `.dockerignore` and non-root user - _`.dockerignore` added to backend and frontend_
 - [x] Enable health checks and restart policies in `docker-compose.yml` - _Health checks and `restart: unless-stopped` configured_
 - [ ] Add `make deploy` target for simplified deployment
@@ -39,7 +39,8 @@ Each section includes short-term and long-term goals to guide development.
 
 ### General
 - [ ] Add mutation testing (`mutmut` for Python, `stryker` for JS)
-- [ ] Enforce code coverage ≥ 85% via CI gates
+- [x] Achieve code coverage ≥ 85% - _Backend at 85% total coverage, frontend has 20 comprehensive tests_
+- [ ] Enforce code coverage ≥ 85% via CI gates - _Coverage achieved, needs CI enforcement_
 - [x] Add pre-commit hooks for lint, format, and type-check - _Comprehensive pre-commit config with Ruff, ESLint, TypeScript checks, and file validation_
 
 ---
@@ -55,7 +56,7 @@ Each section includes short-term and long-term goals to guide development.
   - [ ] **OpenDevin** or **Prometheus + Grafana**
 - [ ] Add structured JSON logging (request IDs, user agent, latency)
 - [x] Add `/health` endpoint for monitoring - _Health check endpoint implemented in backend_
-- [ ] Add `/ready` endpoint for monitoring
+- [x] Add `/ready` endpoint for monitoring - _Readiness endpoint implemented with comprehensive tests for API key configurations_
 - [ ] Add OpenTelemetry tracing for backend routes
 - [ ] Add metrics exporter (Prometheus format)
 
