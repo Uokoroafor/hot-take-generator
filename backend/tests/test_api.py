@@ -66,8 +66,14 @@ class TestHotTakeEndpoints:
         data = response.json()
         assert "agents" in data
         assert isinstance(data["agents"], list)
-        assert "openai" in data["agents"]
-        assert "anthropic" in data["agents"]
+        assert len(data["agents"]) == 2
+        agent_ids = [agent["id"] for agent in data["agents"]]
+        assert "openai" in agent_ids
+        assert "anthropic" in agent_ids
+        for agent in data["agents"]:
+            assert "name" in agent
+            assert "description" in agent
+            assert "model" in agent
 
     def test_get_styles(self, client):
         response = client.get("/api/styles")
@@ -109,6 +115,15 @@ class TestHotTakeEndpoints:
         response = client.post("/api/generate", json=invalid_request)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+    def test_generate_hot_take_invalid_agent_type(self, client):
+        invalid_request = {
+            "topic": "artificial intelligence",
+            "style": "controversial",
+            "agent_type": "invalid",
+        }
+        response = client.post("/api/generate", json=invalid_request)
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
     def test_generate_hot_take_empty_topic(self, client):
         invalid_request = {"topic": "", "style": "controversial"}
         response = client.post("/api/generate", json=invalid_request)
@@ -128,6 +143,24 @@ class TestHotTakeEndpoints:
         args, kwargs = mock_generate.call_args
         assert kwargs["topic"] == "test topic"
         assert kwargs["style"] == "controversial"  # default
+        assert kwargs["agent_type"] is None
+
+    @patch("app.services.hot_take_service.HotTakeService.generate_hot_take")
+    def test_generate_hot_take_with_agent_type(
+        self, mock_generate, client, sample_hot_take_response
+    ):
+        mock_generate.return_value = HotTakeResponse(**sample_hot_take_response)
+
+        request = {
+            "topic": "test topic",
+            "style": "controversial",
+            "agent_type": "openai",
+        }
+        response = client.post("/api/generate", json=request)
+
+        assert response.status_code == status.HTTP_200_OK
+        args, kwargs = mock_generate.call_args
+        assert kwargs["agent_type"] == "openai"
 
     @patch("app.services.hot_take_service.HotTakeService.generate_hot_take")
     def test_generate_hot_take_service_error(

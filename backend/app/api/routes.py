@@ -12,7 +12,7 @@ async def generate_hot_take(request: HotTakeRequest):
         result = await hot_take_service.generate_hot_take(
             topic=request.topic,
             style=request.style,
-            agent_type=None,
+            agent_type=request.agent_type,
             use_web_search=request.use_web_search,
             use_news_search=request.use_news_search,
             max_articles=request.max_articles,
@@ -25,7 +25,7 @@ async def generate_hot_take(request: HotTakeRequest):
 
 @router.get("/agents")
 async def get_agents():
-    return {"agents": hot_take_service.get_available_agents()}
+    return {"agents": hot_take_service.get_available_agents_metadata()}
 
 
 @router.get("/styles")

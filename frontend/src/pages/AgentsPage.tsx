@@ -3,6 +3,7 @@ import config from '../config';
 import './Pages.css';
 
 interface Agent {
+  id: string;
   name: string;
   description: string;
   model: string;
@@ -26,7 +27,25 @@ const AgentsPage = () => {
       const response = await fetch(`${config.apiBaseUrl}/api/agents`);
       if (response.ok) {
         const data = await response.json();
-        setAgents(data.agents || []);
+        const normalizedAgents = (data.agents || []).map((agent: Agent | string) => {
+          if (typeof agent === 'string') {
+            return {
+              id: agent,
+              name: agent,
+              description: `${agent} agent`,
+              model: 'unknown',
+            };
+          }
+          return {
+            id: agent.id || agent.name?.toLowerCase() || 'unknown',
+            name: agent.name,
+            description: agent.description || 'AI agent',
+            model: agent.model || 'unknown',
+            avgResponseTime: agent.avgResponseTime,
+            lastUsed: agent.lastUsed,
+          };
+        });
+        setAgents(normalizedAgents);
       }
     } catch (error) {
       console.error('Failed to fetch agents:', error);
@@ -68,7 +87,7 @@ const AgentsPage = () => {
       if (response.ok) {
         // Update agent with response time
         setAgents(prev => prev.map(a =>
-          a.name === agentName
+          a.id === agentName
             ? { ...a, avgResponseTime: responseTime, lastUsed: new Date().toISOString() }
             : a
         ));
@@ -79,6 +98,8 @@ const AgentsPage = () => {
       setTestingAgent(null);
     }
   };
+
+  const defaultAgentDisplayName = agents.find(a => a.id === defaultAgent)?.name || defaultAgent;
 
   if (loading) {
     return (
@@ -100,7 +121,7 @@ const AgentsPage = () => {
 
       <div className="info-box">
         <p>
-          <strong>Default Agent:</strong> {defaultAgent || 'None selected'}
+          <strong>Default Agent:</strong> {defaultAgentDisplayName || 'None selected'}
         </p>
         <p className="help-text">
           The default agent will be used for generating hot takes. You can override this per-request.
@@ -114,10 +135,10 @@ const AgentsPage = () => {
       ) : (
         <div className="agents-grid">
           {agents.map(agent => (
-            <div key={agent.name} className="agent-card">
+            <div key={agent.id} className="agent-card">
               <div className="agent-header">
                 <h3>{agent.name}</h3>
-                {defaultAgent === agent.name && (
+                {defaultAgent === agent.id && (
                   <span className="badge badge-success">Default</span>
                 )}
               </div>
@@ -148,20 +169,20 @@ const AgentsPage = () => {
               </div>
 
               <div className="agent-actions">
-                {defaultAgent !== agent.name && (
+                {defaultAgent !== agent.id && (
                   <button
-                    onClick={() => setAsDefault(agent.name)}
+                    onClick={() => setAsDefault(agent.id)}
                     className="btn-primary"
                   >
                     Set as Default
                   </button>
                 )}
                 <button
-                  onClick={() => testAgent(agent.name)}
+                  onClick={() => testAgent(agent.id)}
                   className="btn-secondary"
-                  disabled={testingAgent === agent.name}
+                  disabled={testingAgent === agent.id}
                 >
-                  {testingAgent === agent.name ? 'Testing...' : '⚡ Test Speed'}
+                  {testingAgent === agent.id ? 'Testing...' : '⚡ Test Speed'}
                 </button>
               </div>
             </div>

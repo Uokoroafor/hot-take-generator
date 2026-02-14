@@ -53,6 +53,14 @@ class TestHotTakeRequest:
         assert json_data["style"] == "optimistic"
         assert json_data["length"] == "short"
 
+    def test_hot_take_request_valid_agent_type(self):
+        request = HotTakeRequest(topic="technology", agent_type="openai")
+        assert request.agent_type == "openai"
+
+    def test_hot_take_request_invalid_agent_type(self):
+        with pytest.raises(ValidationError):
+            HotTakeRequest(topic="technology", agent_type="invalid")
+
 
 class TestHotTakeResponse:
     def test_hot_take_response_valid(self):
@@ -101,12 +109,14 @@ class TestHotTakeResponse:
 class TestAgentConfig:
     def test_agent_config_valid(self):
         config = AgentConfig(
+            id="openai",
             name="Test Agent",
             description="A test AI agent",
             model="gpt-3.5-turbo",
             temperature=0.7,
             system_prompt="You are a helpful assistant.",
         )
+        assert config.id == "openai"
         assert config.name == "Test Agent"
         assert config.description == "A test AI agent"
         assert config.model == "gpt-3.5-turbo"
@@ -119,6 +129,7 @@ class TestAgentConfig:
 
         errors = exc_info.value.errors()
         required_fields = {
+            "id",
             "name",
             "description",
             "model",
@@ -131,6 +142,7 @@ class TestAgentConfig:
     def test_agent_config_temperature_validation(self):
         # Valid temperature values
         valid_config = AgentConfig(
+            id="test",
             name="Test",
             description="Test",
             model="test-model",
@@ -142,6 +154,7 @@ class TestAgentConfig:
         # Temperature should be a number
         with pytest.raises(ValidationError):
             AgentConfig(
+                id="test",
                 name="Test",
                 description="Test",
                 model="test-model",
@@ -151,6 +164,7 @@ class TestAgentConfig:
 
     def test_agent_config_json_serialization(self):
         config = AgentConfig(
+            id="anthropic",
             name="Claude Agent",
             description="Anthropic's Claude AI model",
             model="claude-3-haiku-20240307",
@@ -159,6 +173,7 @@ class TestAgentConfig:
         )
         json_data = config.model_dump()
 
+        assert json_data["id"] == "anthropic"
         assert json_data["name"] == "Claude Agent"
         assert json_data["description"] == "Anthropic's Claude AI model"
         assert json_data["model"] == "claude-3-haiku-20240307"
