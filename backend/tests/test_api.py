@@ -186,6 +186,12 @@ class TestCORSHeaders:
         # Check for CORS headers in response
         assert "access-control-allow-origin" in response.headers
 
+    def test_cors_headers_not_present_for_disallowed_origin(self, client):
+        headers = {"Origin": "http://evil.example"}
+        response = client.get("/api/agents", headers=headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert "access-control-allow-origin" not in response.headers
+
     def test_cors_preflight(self, client):
         headers = {
             "Origin": "http://localhost:5173",

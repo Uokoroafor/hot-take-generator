@@ -99,3 +99,21 @@ class TestConfigIntegration:
         assert hasattr(test_settings, "anthropic_api_key")
         assert test_settings.environment == "development"
         assert test_settings.debug is True
+
+    def test_cors_origins_default(self):
+        test_settings = Settings()
+        assert "http://localhost:5173" in test_settings.get_cors_origins()
+
+    def test_cors_origins_from_env(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CORS_ORIGINS": "https://app.example.com, https://staging.example.com",
+            },
+            clear=True,
+        ):
+            test_settings = Settings()
+            assert test_settings.get_cors_origins() == [
+                "https://app.example.com",
+                "https://staging.example.com",
+            ]
