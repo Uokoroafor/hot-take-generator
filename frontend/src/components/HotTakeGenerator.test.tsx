@@ -120,6 +120,27 @@ describe('HotTakeGenerator', () => {
     });
   });
 
+  it('displays backend error detail when provided', async () => {
+    const user = userEvent.setup();
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ detail: 'Failed to generate hot take. Please try again.' }),
+    });
+
+    render(<HotTakeGenerator />);
+
+    const topicInput = screen.getByLabelText(/topic/i);
+    const submitButton = screen.getByRole('button', { name: /generate hot take/i });
+
+    await user.type(topicInput, 'AI in education');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/failed to generate hot take\. please try again\./i)).toBeInTheDocument();
+    });
+  });
+
   it('shows news articles count selector only when news search is enabled', async () => {
     const user = userEvent.setup();
     render(<HotTakeGenerator />);
