@@ -175,6 +175,7 @@ class TestWebSearchIntegration:
                 result = await service.generate_hot_take(
                     topic="AI",
                     style="controversial",
+                    agent_type="openai",
                     use_web_search=True,
                     max_articles=2,
                 )
@@ -195,7 +196,10 @@ class TestWebSearchIntegration:
             service.agents["openai"], "generate_hot_take", return_value="AI hot take"
         ):
             result = await service.generate_hot_take(
-                topic="AI", style="controversial", use_web_search=False
+                topic="AI",
+                style="controversial",
+                agent_type="openai",
+                use_web_search=False,
             )
 
             assert isinstance(result, HotTakeResponse)
@@ -222,7 +226,10 @@ class TestWebSearchIntegration:
                 return_value="AI hot take",
             ):
                 result = await service.generate_hot_take(
-                    topic="AI", style="controversial", use_web_search=True
+                    topic="AI",
+                    style="controversial",
+                    agent_type="openai",
+                    use_web_search=True,
                 )
 
                 # Should continue without web search when it fails
