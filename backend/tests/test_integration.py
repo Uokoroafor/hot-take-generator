@@ -2,32 +2,21 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
 from app.main import app
-from tests.utils import MockAgent, TestDataFactory, assert_response_format
+from tests.utils import TestDataFactory, assert_response_format
+from app.models.schemas import HotTakeResponse
 
 
 class TestEndToEndIntegration:
     """Test the complete flow from API request to response"""
 
-    @patch("app.services.hot_take_service.OpenAIAgent")
-    @patch("app.services.hot_take_service.AnthropicAgent")
-    def test_complete_hot_take_generation_flow(self, mock_anthropic, mock_openai):
-        # Setup mocks
-        mock_openai_instance = MockAgent("OpenAI Agent", ["Controversial AI opinion!"])
-        mock_openai.return_value = mock_openai_instance
-
-        mock_anthropic_instance = MockAgent(
-            "Claude Agent", ["Thoughtful AI perspective!"]
+    @patch("app.api.routes.hot_take_service.generate_hot_take", new_callable=AsyncMock)
+    def test_complete_hot_take_generation_flow(self, mock_generate_hot_take):
+        mock_generate_hot_take.return_value = HotTakeResponse(
+            hot_take="Controversial AI opinion!",
+            topic="artificial intelligence",
+            style="controversial",
+            agent_used="OpenAI Agent",
         )
-        mock_anthropic.return_value = mock_anthropic_instance
-
-        # Create async mock versions
-        mock_openai_instance.generate_hot_take = AsyncMock(
-            return_value="Controversial AI opinion!"
-        )
-        mock_anthropic_instance.generate_hot_take = AsyncMock(
-            return_value="Thoughtful AI perspective!"
-        )
-
         client = TestClient(app)
 
         # Test request
