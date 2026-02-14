@@ -16,6 +16,7 @@ vi.mock('../config', () => ({
 describe('HotTakeGenerator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('renders the form with all required fields', () => {
@@ -202,6 +203,36 @@ describe('HotTakeGenerator', () => {
             use_news_search: true,
             max_articles: 5,
           }),
+        })
+      );
+    });
+  });
+
+  it('includes default agent_type from localStorage in generate request', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('defaultAgent', 'openai');
+
+    const mockFetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        hot_take: 'Test take',
+        topic: 'Testing',
+        style: 'controversial',
+        agent_used: 'OpenAI Agent',
+      }),
+    });
+    global.fetch = mockFetch;
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Testing');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:8000/api/generate',
+        expect.objectContaining({
+          body: expect.stringContaining('"agent_type":"openai"'),
         })
       );
     });

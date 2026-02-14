@@ -7,6 +7,7 @@ class HotTakeRequest(BaseModel):
     topic: str
     style: Optional[str] = "controversial"
     length: Optional[str] = "medium"
+    agent_type: Optional[str] = None  # 'openai', 'anthropic', or None for random
     use_web_search: Optional[bool] = False
     use_news_search: Optional[bool] = False
     max_articles: Optional[int] = 3
@@ -24,6 +25,13 @@ class HotTakeRequest(BaseModel):
     def validate_provider(cls, v):
         if v and v not in ["brave", "serper"]:
             raise ValueError("web_search_provider must be 'brave', 'serper', or None")
+        return v
+
+    @field_validator("agent_type")
+    @classmethod
+    def validate_agent_type(cls, v):
+        if v and v not in ["openai", "anthropic"]:
+            raise ValueError("agent_type must be 'openai', 'anthropic', or None")
         return v
 
 
@@ -57,6 +65,7 @@ class WebSearchResult(BaseModel):
 
 
 class AgentConfig(BaseModel):
+    id: str
     name: str
     description: str
     model: str

@@ -34,6 +34,7 @@ const HotTakeGenerator = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [savedTakes, setSavedTakes] = useState<SavedTake[]>([]);
+  const [defaultAgent, setDefaultAgent] = useState('');
 
   // Initialize dark mode from system preference
   useEffect(() => {
@@ -57,6 +58,13 @@ const HotTakeGenerator = () => {
       } catch (e) {
         console.error('Failed to load saved takes:', e);
       }
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedDefaultAgent = localStorage.getItem('defaultAgent');
+    if (savedDefaultAgent) {
+      setDefaultAgent(savedDefaultAgent);
     }
   }, []);
 
@@ -148,6 +156,7 @@ const HotTakeGenerator = () => {
         body: JSON.stringify({
           topic: topic.trim(),
           style: style,
+          agent_type: defaultAgent || undefined,
           use_web_search: useWebSearch,
           use_news_search: useNewsSearch,
           max_articles: maxArticles,
