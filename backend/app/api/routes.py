@@ -1,9 +1,11 @@
+import logging
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import HotTakeRequest, HotTakeResponse
 from app.services.hot_take_service import HotTakeService
 
 router = APIRouter()
 hot_take_service = HotTakeService()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/generate", response_model=HotTakeResponse)
@@ -20,7 +22,10 @@ async def generate_hot_take(request: HotTakeRequest):
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Failed to generate hot take")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate hot take. Please try again."
+        ) from e
 
 
 @router.get("/agents")
