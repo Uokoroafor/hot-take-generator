@@ -30,7 +30,7 @@ class AnthropicAgent(BaseAgent):
             )
             return response.content[0].text.strip()
         except Exception as e:
-            return f"Error generating hot take: {str(e)}"
+            raise RuntimeError("Anthropic generation failed") from e
 
     def get_system_prompt(self, style: str, with_news: bool = False) -> str:
         return PromptManager.get_full_prompt(AgentType.ANTHROPIC, style, with_news)

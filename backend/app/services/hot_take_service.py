@@ -1,11 +1,15 @@
-from typing import List, Optional
-from app.agents.openai_agent import OpenAIAgent
-from app.agents.anthropic_agent import AnthropicAgent
-from app.models.schemas import HotTakeResponse, AgentConfig
-from app.services.web_search_service import WebSearchService
-from app.services.news_search_service import NewsSearchService
-from app.core.prompts import PromptManager
+import logging
 import random
+from typing import List, Optional
+
+from app.agents.anthropic_agent import AnthropicAgent
+from app.agents.openai_agent import OpenAIAgent
+from app.core.prompts import PromptManager
+from app.models.schemas import AgentConfig, HotTakeResponse
+from app.services.news_search_service import NewsSearchService
+from app.services.web_search_service import WebSearchService
+
+logger = logging.getLogger(__name__)
 
 
 class HotTakeService:
@@ -45,7 +49,7 @@ class HotTakeService:
                 if web_context and "No web search results" not in web_context:
                     context_parts.append(web_context)
             except Exception as e:
-                print(f"Web search failed: {e}")
+                logger.warning("Web search failed: %s", e)
 
         # News search context (news articles)
         news_context = None
@@ -57,7 +61,7 @@ class HotTakeService:
                 if news_context and "No recent news found" not in news_context:
                     context_parts.append(news_context)
             except Exception as e:
-                print(f"News search failed: {e}")
+                logger.warning("News search failed: %s", e)
 
         # Combine all context
         combined_context = "\n\n".join(context_parts) if context_parts else None

@@ -32,7 +32,7 @@ class OpenAIAgent(BaseAgent):
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
-            return f"Error generating hot take: {str(e)}"
+            raise RuntimeError("OpenAI generation failed") from e
 
     def get_system_prompt(self, style: str, with_news: bool = False) -> str:
         return PromptManager.get_full_prompt(AgentType.OPENAI, style, with_news)
