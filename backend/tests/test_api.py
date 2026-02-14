@@ -171,7 +171,10 @@ class TestHotTakeEndpoints:
         response = client.post("/api/generate", json=sample_hot_take_request)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert "Service error" in response.json()["detail"]
+        assert (
+            response.json()["detail"]
+            == "Failed to generate hot take. Please try again."
+        )
 
 
 class TestCORSHeaders:
