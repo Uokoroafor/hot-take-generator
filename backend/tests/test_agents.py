@@ -96,9 +96,8 @@ class TestOpenAIAgent:
         mock_client.chat.completions.create.side_effect = Exception("API Error")
 
         agent = OpenAIAgent()
-        result = await agent.generate_hot_take("test topic")
-
-        assert "Error generating hot take: API Error" in result
+        with pytest.raises(RuntimeError, match="OpenAI generation failed"):
+            await agent.generate_hot_take("test topic")
 
 
 class TestAnthropicAgent:
@@ -162,9 +161,8 @@ class TestAnthropicAgent:
         mock_client.messages.create.side_effect = Exception("Anthropic API Error")
 
         agent = AnthropicAgent()
-        result = await agent.generate_hot_take("test topic")
-
-        assert "Error generating hot take: Anthropic API Error" in result
+        with pytest.raises(RuntimeError, match="Anthropic generation failed"):
+            await agent.generate_hot_take("test topic")
 
 
 class TestAgentIntegration:

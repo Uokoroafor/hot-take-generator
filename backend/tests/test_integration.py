@@ -164,7 +164,11 @@ class TestErrorHandling:
 
         response = client.post("/api/generate", json=request_data)
         assert response.status_code == 500
-        assert "Service failure" in response.json()["detail"]
+        # Verify user-friendly error message is returned (internal errors not leaked)
+        assert (
+            response.json()["detail"]
+            == "Failed to generate hot take. Please try again."
+        )
 
     def test_validation_errors(self):
         client = TestClient(app)
