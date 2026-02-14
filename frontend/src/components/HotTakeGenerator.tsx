@@ -164,7 +164,16 @@ const HotTakeGenerator = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate hot take');
+        let message = 'Failed to generate hot take';
+        try {
+          const errorData = await response.json();
+          if (errorData && typeof errorData.detail === 'string' && errorData.detail.trim()) {
+            message = errorData.detail;
+          }
+        } catch {
+          // Ignore JSON parsing errors and keep generic message
+        }
+        throw new Error(message);
       }
 
       const data = await response.json();
