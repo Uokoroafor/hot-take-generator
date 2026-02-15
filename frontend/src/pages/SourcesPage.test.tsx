@@ -43,7 +43,7 @@ describe('SourcesPage', () => {
   it('displays info box about feature development', () => {
     render(<SourcesPage />);
 
-    expect(screen.getByText(/this page will display sources once the backend returns structured data/i)).toBeInTheDocument();
+    expect(screen.getByText(/sources from hot takes generated with web\/news search are tracked/i)).toBeInTheDocument();
   });
 
   it('displays empty state when no sources are saved', () => {
