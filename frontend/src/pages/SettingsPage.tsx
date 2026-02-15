@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import './Pages.css';
+import useDarkMode from '../hooks/useDarkMode';
 
 const SettingsPage = () => {
   const isProduction = import.meta.env.PROD;
   const defaultApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   const [apiBaseUrl, setApiBaseUrl] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useDarkMode();
   const [telemetryOptIn, setTelemetryOptIn] = useState(false);
   const [safeMode, setSafeMode] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -14,10 +15,6 @@ const SettingsPage = () => {
     // API Base URL (from env or localStorage override)
     const savedApiUrl = localStorage.getItem('apiBaseUrl');
     setApiBaseUrl(!isProduction && savedApiUrl ? savedApiUrl : defaultApiBaseUrl);
-
-    // Dark Mode
-    const savedDarkMode = localStorage.getItem('darkMode');
-    setDarkMode(savedDarkMode === 'true');
 
     // Telemetry
     const savedTelemetry = localStorage.getItem('telemetryOptIn');
@@ -34,12 +31,10 @@ const SettingsPage = () => {
 
   const saveSettings = (values?: {
     apiBaseUrl?: string;
-    darkMode?: boolean;
     telemetryOptIn?: boolean;
     safeMode?: boolean;
   }) => {
     const nextApiBaseUrl = values?.apiBaseUrl ?? apiBaseUrl;
-    const nextDarkMode = values?.darkMode ?? darkMode;
     const nextTelemetryOptIn = values?.telemetryOptIn ?? telemetryOptIn;
     const nextSafeMode = values?.safeMode ?? safeMode;
 
@@ -49,10 +44,6 @@ const SettingsPage = () => {
     } else {
       localStorage.setItem('apiBaseUrl', nextApiBaseUrl);
     }
-
-    // Save Dark Mode
-    localStorage.setItem('darkMode', nextDarkMode.toString());
-    document.documentElement.classList.toggle('dark-mode', nextDarkMode);
 
     // Save Telemetry
     localStorage.setItem('telemetryOptIn', nextTelemetryOptIn.toString());
@@ -77,18 +68,12 @@ const SettingsPage = () => {
 
       saveSettings({
         apiBaseUrl: defaultApiBaseUrl,
-        darkMode,
         telemetryOptIn: false,
         safeMode: false,
       });
     }
   };
 
-  const toggleDarkMode = (enabled: boolean) => {
-    setDarkMode(enabled);
-    localStorage.setItem('darkMode', enabled.toString());
-    document.documentElement.classList.toggle('dark-mode', enabled);
-  };
 
   return (
     <div className="page-container">
@@ -126,7 +111,7 @@ const SettingsPage = () => {
                 type="checkbox"
                 id="dark-mode"
                 checked={darkMode}
-                onChange={(e) => toggleDarkMode(e.target.checked)}
+                onChange={(e) => setDarkMode(e.target.checked)}
               />
               <label htmlFor="dark-mode">🌙 Enable Dark Mode</label>
             </div>
