@@ -7,6 +7,8 @@ interface Source {
   snippet: string;
   usedAt: string;
   type: 'web' | 'news';
+  source?: string;
+  published?: string;
 }
 
 const SourcesPage = () => {
@@ -58,8 +60,7 @@ const SourcesPage = () => {
 
       <div className="info-box">
         <p>
-          This page will display sources once the backend returns structured data about
-          web and news searches. Currently, this feature is being developed.
+          Sources from hot takes generated with web/news search are tracked and stored locally.
         </p>
       </div>
 
@@ -116,6 +117,17 @@ const SourcesPage = () => {
                     </span>
                   </div>
                   <p className="source-snippet">{source.snippet}</p>
+                  {(source.source || source.published) && (
+                    <p className="help-text">
+                      {source.source && <span>Source: {source.source}</span>}
+                      {source.source && source.published && <span> • </span>}
+                      {source.published && (
+                        <span>
+                          Published: {new Date(source.published).toLocaleDateString()}
+                        </span>
+                      )}
+                    </p>
+                  )}
                   <a href={source.url} target="_blank" rel="noopener noreferrer" className="source-link">
                     {source.url}
                   </a>

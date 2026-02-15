@@ -9,6 +9,26 @@ interface HotTakeResponse {
   agent_used: string;
   web_search_used?: boolean;
   news_context?: string;
+  sources?: SourceRecord[];
+}
+
+interface SourceRecord {
+  type: 'web' | 'news';
+  title: string;
+  url: string;
+  snippet?: string;
+  source?: string;
+  published?: string;
+}
+
+interface TrackedSource {
+  url: string;
+  title: string;
+  snippet: string;
+  usedAt: string;
+  type: 'web' | 'news';
+  source?: string;
+  published?: string;
 }
 
 interface SavedTake extends HotTakeResponse {
@@ -178,6 +198,7 @@ const HotTakeGenerator = () => {
 
       const data = await response.json();
       setHotTake(data);
+      saveRecentSources(data.sources);
       showToast('Hot take generated!', 'success');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
@@ -185,6 +206,41 @@ const HotTakeGenerator = () => {
       showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveRecentSources = (sources?: SourceRecord[]) => {
+    if (!sources || sources.length === 0) return;
+
+    const now = new Date().toISOString();
+    const normalizedSources: TrackedSource[] = sources
+      .filter((source) => source.title && source.url)
+      .map((source) => ({
+        type: source.type,
+        title: source.title,
+        url: source.url,
+        snippet: source.snippet || '',
+        source: source.source,
+        published: source.published,
+        usedAt: now,
+      }));
+
+    if (normalizedSources.length === 0) return;
+
+    try {
+      const existingRaw = localStorage.getItem('recentSources');
+      const existingSources: TrackedSource[] = existingRaw ? JSON.parse(existingRaw) : [];
+      const merged = [...normalizedSources, ...existingSources];
+      const seen = new Set<string>();
+      const deduped = merged.filter((source) => {
+        const key = `${source.type}:${source.url}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      localStorage.setItem('recentSources', JSON.stringify(deduped.slice(0, 100)));
+    } catch (e) {
+      console.error('Failed to save recent sources:', e);
     }
   };
 
