@@ -259,6 +259,42 @@ describe('HotTakeGenerator', () => {
     });
   });
 
+  it('saves structured sources to localStorage when returned by API', async () => {
+    const user = userEvent.setup();
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        hot_take: 'Sourced take',
+        topic: 'AI',
+        style: 'analytical',
+        agent_used: 'OpenAI Agent',
+        sources: [
+          {
+            type: 'web',
+            title: 'AI News',
+            url: 'https://example.com/ai-news',
+            snippet: 'Latest AI updates',
+            source: 'example.com',
+          },
+        ],
+      }),
+    });
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'AI');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      const saved = localStorage.getItem('recentSources');
+      expect(saved).toBeTruthy();
+      const parsed = JSON.parse(saved || '[]');
+      expect(parsed[0].title).toBe('AI News');
+      expect(parsed[0].type).toBe('web');
+      expect(parsed[0].url).toBe('https://example.com/ai-news');
+    });
+  });
+
   it('displays news context when available', async () => {
     const user = userEvent.setup();
     const mockResponse = {
