@@ -100,9 +100,10 @@ jobs:
 
       - name: Generate coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: tj-actions/coverage-badge-py@v2
-        with:
-          working-directory: backend
+        run: |
+          pip install "genbadge[coverage]"
+          cd backend
+          genbadge coverage -i coverage.xml -o coverage.svg
 
       - name: Verify coverage badge changed
         if: github.ref == 'refs/heads/main'
