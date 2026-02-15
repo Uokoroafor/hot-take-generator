@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './Pages.css';
 
 const SettingsPage = () => {
+  const isProduction = import.meta.env.PROD;
   const defaultApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [darkMode, setDarkMode] = useState(false);
@@ -9,14 +10,10 @@ const SettingsPage = () => {
   const [safeMode, setSafeMode] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = () => {
+  const loadSettings = useCallback(() => {
     // API Base URL (from env or localStorage override)
     const savedApiUrl = localStorage.getItem('apiBaseUrl');
-    setApiBaseUrl(savedApiUrl || defaultApiBaseUrl);
+    setApiBaseUrl(!isProduction && savedApiUrl ? savedApiUrl : defaultApiBaseUrl);
 
     // Dark Mode
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -29,25 +26,39 @@ const SettingsPage = () => {
     // Safe Mode
     const savedSafeMode = localStorage.getItem('safeMode');
     setSafeMode(savedSafeMode === 'true');
-  };
+  }, [defaultApiBaseUrl, isProduction]);
 
-  const saveSettings = () => {
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const saveSettings = (values?: {
+    apiBaseUrl?: string;
+    darkMode?: boolean;
+    telemetryOptIn?: boolean;
+    safeMode?: boolean;
+  }) => {
+    const nextApiBaseUrl = values?.apiBaseUrl ?? apiBaseUrl;
+    const nextDarkMode = values?.darkMode ?? darkMode;
+    const nextTelemetryOptIn = values?.telemetryOptIn ?? telemetryOptIn;
+    const nextSafeMode = values?.safeMode ?? safeMode;
+
     // Save API Base URL
-    if (apiBaseUrl !== defaultApiBaseUrl) {
-      localStorage.setItem('apiBaseUrl', apiBaseUrl);
-    } else {
+    if (isProduction || nextApiBaseUrl === defaultApiBaseUrl) {
       localStorage.removeItem('apiBaseUrl');
+    } else {
+      localStorage.setItem('apiBaseUrl', nextApiBaseUrl);
     }
 
     // Save Dark Mode
-    localStorage.setItem('darkMode', darkMode.toString());
-    document.documentElement.classList.toggle('dark-mode', darkMode);
+    localStorage.setItem('darkMode', nextDarkMode.toString());
+    document.documentElement.classList.toggle('dark-mode', nextDarkMode);
 
     // Save Telemetry
-    localStorage.setItem('telemetryOptIn', telemetryOptIn.toString());
+    localStorage.setItem('telemetryOptIn', nextTelemetryOptIn.toString());
 
     // Save Safe Mode
-    localStorage.setItem('safeMode', safeMode.toString());
+    localStorage.setItem('safeMode', nextSafeMode.toString());
 
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -64,7 +75,12 @@ const SettingsPage = () => {
       setTelemetryOptIn(false);
       setSafeMode(false);
 
-      saveSettings();
+      saveSettings({
+        apiBaseUrl: defaultApiBaseUrl,
+        darkMode,
+        telemetryOptIn: false,
+        safeMode: false,
+      });
     }
   };
 
@@ -92,9 +108,12 @@ const SettingsPage = () => {
               value={apiBaseUrl}
               onChange={(e) => setApiBaseUrl(e.target.value)}
               placeholder="http://localhost:8000"
+              disabled={isProduction}
             />
             <p className="help-text">
-              The backend API endpoint. Changes require a page refresh to take effect.
+              {isProduction
+                ? 'API URL is managed by deployment environment variables.'
+                : 'The backend API endpoint. Changes require a page refresh to take effect.'}
             </p>
           </div>
         </section>
@@ -193,7 +212,7 @@ const SettingsPage = () => {
         </section>
 
         <div className="settings-actions">
-          <button onClick={saveSettings} className="btn-primary">
+          <button onClick={() => saveSettings()} className="btn-primary">
             {saved ? '✓ Saved!' : 'Save Settings'}
           </button>
           <button onClick={resetToDefaults} className="btn-secondary">
