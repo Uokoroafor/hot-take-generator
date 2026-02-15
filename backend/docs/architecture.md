@@ -61,6 +61,7 @@ The client sends a POST request to `/api/generate`:
   "topic": "remote work",
   "style": "controversial",
   "length": "medium",
+  "agent_type": "openai",
   "use_web_search": true,
   "use_news_search": true,
   "max_articles": 3,
@@ -68,35 +69,70 @@ The client sends a POST request to `/api/generate`:
 }
 ```
 
-The route validates the request using Pydantic schemas and delegates to `HotTakeService`. Agent selection is automatic between the available providers (exposed via `/api/agents`).
+**Request Fields:**
+- `topic` (required) - The subject for the hot take
+- `style` (optional) - One of: controversial, sarcastic, optimistic, pessimistic, absurd, analytical, philosophical, witty, contrarian
+- `length` (optional) - Currently a placeholder; prompts do not yet vary by length
+- `agent_type` (optional) - Specific agent to use: `"openai"`, `"anthropic"`, or `null` for random selection
+- `use_web_search` (optional) - Include general web search results
+- `use_news_search` (optional) - Include recent news articles
+- `max_articles` (optional) - Number of articles to fetch (default 3; provider-specific limits apply)
+- `web_search_provider` (optional) - Specific search provider: `"brave"`, `"serper"`, or `null` for auto-selection
 
-> Note: `length` is currently a placeholder; prompts do not yet vary by length.
+The route validates the request using Pydantic schemas and delegates to `HotTakeService`. Agent metadata is exposed via `/api/agents`.
 
 ### 2. Hot Take Service (`app/services/hot_take_service.py`)
 
 The orchestration layer that:
 
-1. **Selects an agent** - Picks the requested agent (OpenAI/Anthropic) or falls back to an available one
-2. **Gathers context** (if `use_web_search` is true):
+1. **Selects an agent** - Uses requested `agent_type` (openai/anthropic) or randomly selects one if not specified
+2. **Gathers context** (if `use_web_search` or `use_news_search` is true):
    - Fetches recent news via `NewsSearchService`
    - Fetches web results via `WebSearchService`
+   - Builds structured `SourceRecord[]` for tracking
 3. **Builds the prompt** - Combines topic, style, and context
-4. **Calls the agent** - Sends prompt to the LLM
-5. **Returns response** - Wraps result in `HotTakeResponse`
+4. **Calls the agent** - Sends prompt to the LLM (raises exceptions on failure)
+5. **Returns response** - Wraps result in `HotTakeResponse` with structured sources
 
 ### 3. Search Services
 
 #### News Search Service (`app/services/news_search_service.py`)
 
-- Queries NewsAPI for recent articles on the topic (no RSS ingestion)
-- Extracts headlines, descriptions, and sources
+- Queries NewsAPI for recent articles on the topic
+- Extracts headlines, descriptions, sources, and publish dates
+- Returns structured article data (not just formatted strings)
 - Formats as context string for the LLM
 
 #### Web Search Service (`app/services/web_search_service.py`)
 
-- Queries configured provider (Brave or Serper)
-- Returns top search results with titles and snippets
-- Normalises results across providers
+- Queries configured provider (Brave or Serper via SearchProvider interface)
+- Returns top search results with titles, snippets, URLs
+- Normalizes results across providers into consistent format
+- Auto-selects first configured provider if none specified
+
+#### Source Tracking
+
+The service builds structured `SourceRecord` objects from search results:
+
+```python
+class SourceRecord(BaseModel):
+    type: Literal["web", "news"]
+    title: str
+    url: str
+    snippet: Optional[str] = None
+    source: Optional[str] = None
+    published: Optional[datetime] = None
+```
+
+**Helper Methods:**
+- `_build_web_source_records(results)` - Transforms web search results to SourceRecord[]
+- `_build_news_source_records(articles)` - Transforms news articles to SourceRecord[]
+
+These structured sources enable:
+- Frontend source tracking and display in SourcesPage
+- Deduplication across generations
+- Attribution and citation
+- Historical source browsing
 
 ### 4. Agents (`app/agents/`)
 
@@ -111,10 +147,11 @@ Each agent implements `BaseAgent` with a `generate()` method:
 - Supports Claude models
 
 Both agents:
-1. Get system prompt from `PromptManager` based on style
+1. Get system prompt from `PromptManager` based on style and context type
 2. Build messages array with system prompt and user topic
-3. Call the LLM API
-4. Return generated text
+3. Call the LLM API (OpenAI Chat Completions or Anthropic Messages)
+4. Return generated text on success
+5. **Raise `RuntimeError` on failure** (not error strings) for proper HTTP error handling
 
 ### 5. Prompt Management (`app/core/prompts.py`)
 
@@ -126,31 +163,141 @@ Centralised prompt templates for each style:
 - etc.
 
 The `PromptManager` class provides:
-- `get_system_prompt(style)` - Returns style-specific instructions
-- `get_available_styles()` - Lists all styles
-- `get_agent_metadata()` - Returns agent info for the frontend
+- `get_full_prompt(agent_type, style, with_news)` - Returns complete system prompt for given agent, style, and context type
+- `get_all_available_styles()` - Lists all available styles
 
 ## Response Flow
 
 The response travels back through the same layers:
 
-```python
-HotTakeResponse(
-    hot_take="Remote work is just corporate-sponsored agoraphobia...",
-    topic="remote work",
-    style="controversial",
-    agent_used="openai",
-    web_search_used=True,
-    news_context="Recent articles: ..."
-)
+```json
+{
+  "hot_take": "Remote work is just corporate-sponsored agoraphobia...",
+  "topic": "remote work",
+  "style": "controversial",
+  "agent_used": "OpenAI Agent",
+  "web_search_used": true,
+  "news_context": "Recent articles: ...",
+  "sources": [
+    {
+      "type": "web",
+      "title": "The Future of Remote Work",
+      "url": "https://example.com/article",
+      "snippet": "Companies are rethinking their office strategies...",
+      "source": "TechCrunch",
+      "published": "2024-01-15T10:30:00Z"
+    },
+    {
+      "type": "news",
+      "title": "Remote Work Trends 2024",
+      "url": "https://news.example.com/remote-work",
+      "snippet": "Latest statistics show...",
+      "source": "Business News",
+      "published": "2024-01-16T14:20:00Z"
+    }
+  ]
+}
 ```
+
+**Response Fields:**
+- `hot_take` - The generated opinion text
+- `topic` - Echo of the input topic
+- `style` - Echo of the style used
+- `agent_used` - Name of the agent that generated the take (e.g., "OpenAI Agent", "Claude Agent")
+- `web_search_used` - Boolean indicating if any search context was used
+- `news_context` - Combined formatted text of all search results (for display in UI)
+- `sources` - Structured array of `SourceRecord` objects for tracking and display
+
+## API Endpoints
+
+### Core Endpoints
+
+#### `POST /api/generate`
+Generates a hot take based on the provided topic and parameters.
+- **Request**: `HotTakeRequest` (see Request Flow section above)
+- **Response**: `HotTakeResponse` with hot take text and metadata
+- **Status Codes**: 200 (success), 422 (validation error), 500 (generation error)
+
+#### `GET /api/agents`
+Returns metadata about available AI agents.
+- **Response**:
+```json
+{
+  "agents": [
+    {
+      "id": "openai",
+      "name": "OpenAI Agent",
+      "description": "Generates hot takes with OpenAI models.",
+      "model": "gpt-3.5-turbo",
+      "temperature": 0.8,
+      "system_prompt": "..."
+    },
+    {
+      "id": "anthropic",
+      "name": "Claude Agent",
+      "description": "Generates hot takes with Anthropic Claude models.",
+      "model": "claude-3-haiku-20240307",
+      "temperature": 0.8,
+      "system_prompt": "..."
+    }
+  ]
+}
+```
+
+#### `GET /api/styles`
+Returns list of available hot take styles.
+- **Response**:
+```json
+{
+  "styles": [
+    "controversial",
+    "sarcastic",
+    "optimistic",
+    "pessimistic",
+    "absurd",
+    "analytical",
+    "philosophical",
+    "witty",
+    "contrarian"
+  ]
+}
+```
+
+### Health Endpoints
+
+#### `GET /health`
+Basic health check - always returns 200 if service is running.
+- **Response**: `{"status": "healthy"}`
+
+#### `GET /ready`
+Readiness probe - checks if service is properly configured.
+- **Response**: `{"status": "ready"}` (200) if at least one AI provider API key is configured
+- **Response**: `{"status": "not_ready", "missing_configuration": [...]}` (503) if no AI providers configured
 
 ## Error Handling
 
-- **Missing API keys** - Service logs warning, returns degraded response
-- **API failures** - Caught and logged, fallback to other agent if available
-- **Invalid input** - Pydantic validation returns 422 with details
-- **Unexpected errors** - Bubble up as 500 HTTPException
+The application follows proper error handling practices:
+
+### Agent Failures
+- **LLM API errors** - Agents raise `RuntimeError` (not error strings)
+- **Route handler** - Catches exceptions, logs full stack trace with `logger.exception()`
+- **HTTP response** - Returns `500 Internal Server Error` with user-safe message
+- **Client receives** - Generic error: "Failed to generate hot take. Please try again."
+- **Security** - Internal error details never exposed to clients (logged server-side only)
+
+### Validation Errors
+- **Invalid input** - Pydantic validation returns `422 Unprocessable Entity` with field-specific details
+- **Invalid agent_type** - Validation error if not `"openai"`, `"anthropic"`, or `null`
+- **Invalid web_search_provider** - Validation error if not `"brave"`, `"serper"`, or `null`
+
+### Search Service Failures
+- **Non-fatal** - Web/news search failures logged as warnings
+- **Graceful degradation** - Hot take generation continues without search context
+- **No user impact** - Search unavailability doesn't break the core feature
+
+### Missing API Keys
+- **Startup check** - `/ready` endpoint returns `503 Service Unavailable` if no AI provider configured
+- **Runtime** - At least one of `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` must be set
 
 ## Configuration (`app/core/config.py`)
 
@@ -158,14 +305,33 @@ Environment-based settings using `pydantic-settings`:
 
 ```python
 class Settings(BaseSettings):
-    openai_api_key: Optional[str]
-    anthropic_api_key: Optional[str]
-    brave_api_key: Optional[str]
-    serper_api_key: Optional[str]
-    newsapi_api_key: Optional[str]
+    # AI Provider API Keys
+    openai_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+
+    # Search API Keys
+    brave_api_key: Optional[str] = None
+    serper_api_key: Optional[str] = None
+    newsapi_api_key: Optional[str] = None
+
+    # Environment Settings
     environment: str = "development"
     debug: bool = True
+
+    # CORS Configuration
+    cors_origins: str = "http://localhost:5173"
+
+    def get_cors_origins(self) -> list[str]:
+        """Parse comma-separated CORS origins into a list."""
+        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        return origins or ["http://localhost:5173"]
 ```
+
+**CORS Configuration:**
+- `CORS_ORIGINS` environment variable accepts comma-separated origins
+- Default: `http://localhost:5173` (local development)
+- Production example: `CORS_ORIGINS=https://app.example.com,https://staging.example.com`
+- Applied in `main.py` via `CORSMiddleware`
 
 ## Adding New Components
 
@@ -174,7 +340,7 @@ Add to `StylePrompts.BASE_PROMPTS` in `app/core/prompts.py`
 
 ### New Agent
 1. Subclass `BaseAgent` in `app/agents/`
-2. Implement `generate(topic, style, context)` method
+2. Implement `generate_hot_take(topic, style, news_context)` method
 3. Register in `HotTakeService.__init__`
 
 ### New Search Provider

@@ -4,14 +4,63 @@ The backend is a FastAPI application that receives hot-take requests, orchestrat
 
 ## Request Flow
 
-1. **Routes** (`app.api.routes`): `/api/generate` accepts a `HotTakeRequest` and validates payloads via Pydantic (supports `use_web_search`, `use_news_search`, `max_articles`, and `web_search_provider`). Additional `/api/agents` and `/api/styles` endpoints expose metadata for the frontend. `length` is currently a placeholder and not yet used in prompts.
-2. **Service layer** (`app.services.hot_take_service.HotTakeService`): Chooses an AI agent, gathers optional web/news context, and formats everything required for the LLM call.
+1. **Routes** (`app.api.routes`): `/api/generate` accepts a `HotTakeRequest` and validates payloads via Pydantic (supports `agent_type`, `use_web_search`, `use_news_search`, `max_articles`, and `web_search_provider`). Additional `/api/agents` and `/api/styles` endpoints expose metadata for the frontend. `length` is currently a placeholder and not yet used in prompts.
+2. **Service layer** (`app.services.hot_take_service.HotTakeService`): Chooses an AI agent, gathers optional web/news context, and returns both formatted context text plus structured `sources` metadata.
 3. **Agents** (`app.agents.*`): Concrete implementations for OpenAI and Anthropic inherit from a shared `BaseAgent`. Each agent:
    - fetches unified prompts from `PromptManager`
    - assembles a chat completion/message payload
-   - returns text or a structured error string
-4. **Search Providers** (`app.services.search_providers.*`): Async providers for Brave and Serper implement a common interface to normalise results, which are then turned into LLM-ready context.
+   - returns generated text on success
+   - raises runtime errors on provider/API failure
+4. **Search Providers** (`app.services.search_providers.*`): Async providers for Brave and Serper implement a common interface to normalize results, which are then turned into LLM-ready context and `SourceRecord` objects.
 5. **Schemas** (`app.models.schemas`): Define the request/response contracts for FastAPI and document generator.
+
+## API Contract (Current)
+
+### `POST /api/generate` request
+
+```json
+{
+  "topic": "artificial intelligence",
+  "style": "controversial",
+  "length": "medium",
+  "agent_type": "openai",
+  "use_web_search": true,
+  "use_news_search": true,
+  "max_articles": 3,
+  "web_search_provider": "brave"
+}
+```
+
+### `POST /api/generate` response
+
+```json
+{
+  "hot_take": "AI will automate most routine work before teams are ready.",
+  "topic": "artificial intelligence",
+  "style": "controversial",
+  "agent_used": "OpenAI Agent",
+  "web_search_used": true,
+  "news_context": "Web search results: ...\n\nRecent news and headlines: ...",
+  "sources": [
+    {
+      "type": "web",
+      "title": "AI adoption accelerates in 2026",
+      "url": "https://example.com/ai-adoption",
+      "snippet": "Companies are integrating AI faster than expected...",
+      "source": "example.com",
+      "published": "2026-01-10T12:00:00+00:00"
+    }
+  ]
+}
+```
+
+### `GET /api/agents` response
+
+Returns rich agent metadata (`id`, `name`, `description`, `model`, `temperature`, `system_prompt`) for frontend selection and display.
+
+### `GET /api/styles` response
+
+Returns the list of available style names from `PromptManager`.
 
 ## Key Modules
 
@@ -39,9 +88,10 @@ The backend is a FastAPI application that receives hot-take requests, orchestrat
 
 ## Error Handling & Observability
 
-- Each service logs provider-specific warnings/errors rather than raising, allowing the API to return a degraded but successful response.
-- FastAPI exceptions bubble up through `HTTPException`, resulting in consistent 500 errors for unexpected failures.
+- Web/news context lookups are non-fatal; failures are logged and generation continues without that context.
+- Agent/provider failures are raised and translated by the route layer into a safe `500` response (`"Failed to generate hot take. Please try again."`).
 - Health checks at `/health` let deployment targets monitor the process.
+- Readiness checks at `/ready` verify at least one AI provider key is configured.
 
 ## Related Reading
 

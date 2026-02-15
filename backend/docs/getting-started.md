@@ -29,10 +29,13 @@ Key environment variables supported by `app.core.config.Settings`:
 | `BRAVE_API_KEY` | Turns on Brave search provider |
 | `SERPER_API_KEY` | Turns on Serper.dev provider |
 | `NEWSAPI_API_KEY` | Enables news context gathering |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins (default: `http://localhost:5173`) |
 | `ENVIRONMENT` | Set to `development` or `production` (default: `development`) |
 | `DEBUG` | Enable debug mode (default: `true`) |
 
 The FastAPI docs are available at `http://localhost:8000/docs` once the server is running.
+
+At runtime, ensure at least one of `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is configured. The `/ready` endpoint returns `503` if both are missing.
 
 ## Makefile Shortcuts
 
