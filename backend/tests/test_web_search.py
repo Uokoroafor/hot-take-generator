@@ -161,10 +161,17 @@ class TestWebSearchIntegration:
 
         service = HotTakeService()
 
-        # Mock the web search
-        mock_context = "Web search results: AI technology advances"
+        mock_results = [
+            {
+                "title": "Web Result 1",
+                "url": "https://example.com/web-result-1",
+                "snippet": "AI technology advances",
+                "source": "example.com",
+                "published": None,
+            }
+        ]
         with patch.object(
-            service.web_search_service, "search_and_format", return_value=mock_context
+            service.web_search_service, "search", return_value=mock_results
         ):
             # Mock the agent response
             with patch.object(
@@ -182,7 +189,11 @@ class TestWebSearchIntegration:
 
                 assert isinstance(result, HotTakeResponse)
                 assert result.web_search_used is True
-                assert result.news_context == mock_context
+                assert result.news_context is not None
+                assert result.sources is not None
+                assert len(result.sources) == 1
+                assert result.sources[0].type == "web"
+                assert result.sources[0].title == "Web Result 1"
 
     @pytest.mark.asyncio
     async def test_hot_take_service_web_search_disabled(self):
@@ -205,6 +216,7 @@ class TestWebSearchIntegration:
             assert isinstance(result, HotTakeResponse)
             assert result.web_search_used is False
             assert result.news_context is None
+            assert result.sources is None
 
     @pytest.mark.asyncio
     async def test_hot_take_service_web_search_error(self):
@@ -216,7 +228,7 @@ class TestWebSearchIntegration:
         # Mock web search to raise an error
         with patch.object(
             service.web_search_service,
-            "search_and_format",
+            "search",
             side_effect=Exception("Search failed"),
         ):
             # Mock the agent response
@@ -235,6 +247,7 @@ class TestWebSearchIntegration:
                 # Should continue without web search when it fails
                 assert isinstance(result, HotTakeResponse)
                 assert result.web_search_used is False
+                assert result.sources is None
 
 
 class TestWebSearchModels:
@@ -295,10 +308,20 @@ class TestWebSearchModels:
             agent_used="Test Agent",
             web_search_used=True,
             news_context="Test news context",
+            sources=[
+                {
+                    "type": "web",
+                    "title": "Example",
+                    "url": "https://example.com",
+                    "snippet": "Snippet",
+                }
+            ],
         )
 
         assert response.web_search_used is True
         assert response.news_context == "Test news context"
+        assert response.sources is not None
+        assert response.sources[0].type == "web"
 
     def test_hot_take_response_without_web_search(self):
         """Test HotTakeResponse without web search."""
