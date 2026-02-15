@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import HotTakeGenerator from './HotTakeGenerator';
 
 // Mock fetch globally
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 // Mock config module
 vi.mock('../config', () => ({
@@ -52,7 +52,7 @@ describe('HotTakeGenerator', () => {
     const user = userEvent.setup();
 
     // Mock a delayed response
-    (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
       () => new Promise(() => {}) // Never resolves
     );
 
@@ -77,7 +77,7 @@ describe('HotTakeGenerator', () => {
       agent_used: 'test-agent',
     };
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
@@ -103,7 +103,7 @@ describe('HotTakeGenerator', () => {
   it('displays error message on failed generation', async () => {
     const user = userEvent.setup();
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: false,
     });
 
@@ -123,7 +123,7 @@ describe('HotTakeGenerator', () => {
   it('displays backend error detail when provided', async () => {
     const user = userEvent.setup();
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: false,
       json: async () => ({ detail: 'Failed to generate hot take. Please try again.' }),
     });
@@ -189,7 +189,7 @@ describe('HotTakeGenerator', () => {
       }),
     });
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<HotTakeGenerator />);
 
@@ -242,7 +242,7 @@ describe('HotTakeGenerator', () => {
         agent_used: 'OpenAI Agent',
       }),
     });
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<HotTakeGenerator />);
 
@@ -261,7 +261,7 @@ describe('HotTakeGenerator', () => {
 
   it('saves structured sources to localStorage when returned by API', async () => {
     const user = userEvent.setup();
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         hot_take: 'Sourced take',
@@ -306,7 +306,7 @@ describe('HotTakeGenerator', () => {
       news_context: 'Recent news about current events...',
     };
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
@@ -336,7 +336,7 @@ describe('HotTakeGenerator', () => {
     const user = userEvent.setup();
 
     // Mock a delayed response
-    (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
       () => new Promise(() => {}) // Never resolves
     );
 
@@ -377,7 +377,7 @@ describe('HotTakeGenerator', () => {
       agent_used: 'test-agent',
     };
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
@@ -406,7 +406,7 @@ describe('HotTakeGenerator', () => {
       agent_used: 'test-agent',
     };
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
@@ -450,7 +450,7 @@ describe('HotTakeGenerator', () => {
     })();
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });

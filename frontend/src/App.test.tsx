@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
 // Mock fetch globally
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 // Mock config module
 vi.mock('./config', () => ({

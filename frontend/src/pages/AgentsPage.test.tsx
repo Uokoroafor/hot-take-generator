@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import AgentsPage from './AgentsPage';
 
 // Mock fetch globally
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 // Mock config module
 vi.mock('../config', () => ({
@@ -42,7 +42,7 @@ describe('AgentsPage', () => {
   });
 
   it('renders the page header', () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: [] }),
     });
@@ -53,7 +53,7 @@ describe('AgentsPage', () => {
   });
 
   it('shows loading state initially', () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
       () => new Promise(() => {}) // Never resolves
     );
 
@@ -67,7 +67,7 @@ describe('AgentsPage', () => {
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<AgentsPage />);
 
@@ -77,7 +77,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays agents after successful fetch', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -92,7 +92,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays agent descriptions', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -107,7 +107,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays agent model information', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -122,7 +122,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays average response time when available', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -136,7 +136,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays last used date when available', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -150,7 +150,7 @@ describe('AgentsPage', () => {
   });
 
   it('shows empty state when no agents are available', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: [] }),
     });
@@ -165,7 +165,7 @@ describe('AgentsPage', () => {
 
   it('handles fetch error gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
 
     render(<AgentsPage />);
 
@@ -178,7 +178,7 @@ describe('AgentsPage', () => {
 
   it('loads default agent from localStorage', async () => {
     localStorage.setItem('defaultAgent', 'claude');
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -194,7 +194,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays "None selected" when no default agent is set', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -211,7 +211,7 @@ describe('AgentsPage', () => {
 
   it('shows default badge on default agent card', async () => {
     localStorage.setItem('defaultAgent', 'gpt-4');
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -225,7 +225,7 @@ describe('AgentsPage', () => {
 
   it('sets agent as default when button is clicked', async () => {
     const user = userEvent.setup();
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -245,7 +245,7 @@ describe('AgentsPage', () => {
 
   it('does not show set as default button for current default agent', async () => {
     localStorage.setItem('defaultAgent', 'gpt-4');
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
@@ -275,7 +275,7 @@ describe('AgentsPage', () => {
         json: async () => ({ hot_take: 'test', topic: 'test', style: 'controversial' }),
       });
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<AgentsPage />);
 
@@ -298,7 +298,7 @@ describe('AgentsPage', () => {
 
   it('shows testing state while testing agent', async () => {
     const user = userEvent.setup();
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ agents: mockAgents }),
@@ -323,7 +323,7 @@ describe('AgentsPage', () => {
 
   it('disables test button while testing', async () => {
     const user = userEvent.setup();
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ agents: mockAgents }),
@@ -351,7 +351,7 @@ describe('AgentsPage', () => {
     const user = userEvent.setup();
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    (global.fetch as ReturnType<typeof vi.fn>)
+    (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ agents: mockAgents }),
@@ -378,7 +378,7 @@ describe('AgentsPage', () => {
   });
 
   it('displays help text about default agent', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ agents: mockAgents }),
     });
