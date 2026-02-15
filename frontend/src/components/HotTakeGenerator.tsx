@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './HotTakeGenerator.css';
 import config from '../config';
+import useDarkMode from '../hooks/useDarkMode';
 
 interface HotTakeResponse {
   hot_take: string;
@@ -51,23 +52,10 @@ const HotTakeGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [hotTake, setHotTake] = useState<HotTakeResponse | null>(null);
   const [error, setError] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useDarkMode();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [savedTakes, setSavedTakes] = useState<SavedTake[]>([]);
   const [defaultAgent, setDefaultAgent] = useState('');
-
-  // Initialize dark mode from system preference
-  useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedDarkMode = localStorage.getItem('darkMode');
-    setDarkMode(savedDarkMode ? savedDarkMode === 'true' : prefersDark);
-  }, []);
-
-  // Apply dark mode class to document
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark-mode', darkMode);
-    localStorage.setItem('darkMode', darkMode.toString());
-  }, [darkMode]);
 
   // Load saved takes from localStorage
   useEffect(() => {
