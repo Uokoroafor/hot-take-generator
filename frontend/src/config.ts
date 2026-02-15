@@ -7,11 +7,13 @@ interface Config {
   apiBaseUrl: string;
 }
 
+const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const storedApiBaseUrl =
+  typeof window !== 'undefined' ? localStorage.getItem('apiBaseUrl') : null;
+const isProduction = import.meta.env.PROD;
+
 const config: Config = {
-  apiBaseUrl:
-    (typeof window !== 'undefined' ? localStorage.getItem('apiBaseUrl') : null) ||
-    import.meta.env.VITE_API_BASE_URL ||
-    'http://localhost:8000',
+  apiBaseUrl: isProduction ? envApiBaseUrl : storedApiBaseUrl || envApiBaseUrl,
 };
 
 export default config;

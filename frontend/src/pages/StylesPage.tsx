@@ -36,7 +36,13 @@ const StylesPage = () => {
   const loadPresets = () => {
     const saved = localStorage.getItem('stylePresets');
     if (saved) {
-      setPresets(JSON.parse(saved));
+      try {
+        setPresets(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load style presets:', e);
+        setPresets(DEFAULT_STYLES);
+        localStorage.setItem('stylePresets', JSON.stringify(DEFAULT_STYLES));
+      }
     } else {
       setPresets(DEFAULT_STYLES);
       localStorage.setItem('stylePresets', JSON.stringify(DEFAULT_STYLES));

@@ -112,7 +112,7 @@ const HotTakeGenerator = () => {
   const shareToTwitter = () => {
     if (!hotTake) return;
     const text = encodeURIComponent(`${hotTake.hot_take}\n\n#HotTake #${hotTake.topic.replace(/\s+/g, '')}`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   // Save hot take
@@ -168,20 +168,30 @@ const HotTakeGenerator = () => {
     setHotTake(null);
 
     try {
-      const response = await fetch(`${config.apiBaseUrl}/api/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topic: topic.trim(),
-          style: style,
-          agent_type: defaultAgent || undefined,
-          use_web_search: useWebSearch,
-          use_news_search: useNewsSearch,
-          max_articles: maxArticles,
-        }),
-      });
+      const controller = new AbortController();
+      const timeoutMs = 30000;
+      const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+      let response: Response;
+
+      try {
+        response = await fetch(`${config.apiBaseUrl}/api/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            topic: topic.trim(),
+            style: style,
+            agent_type: defaultAgent || undefined,
+            use_web_search: useWebSearch,
+            use_news_search: useNewsSearch,
+            max_articles: maxArticles,
+          }),
+        });
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
 
       if (!response.ok) {
         let message = 'Failed to generate hot take';
@@ -201,7 +211,13 @@ const HotTakeGenerator = () => {
       saveRecentSources(data.sources);
       showToast('Hot take generated!', 'success');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      let errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        errorMessage = 'Request timed out after 30 seconds. Please try again.';
+      } else if (err instanceof TypeError) {
+        errorMessage =
+          'Network error. Check API URL, backend availability, or CORS settings.';
+      }
       setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
