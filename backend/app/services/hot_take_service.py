@@ -1,11 +1,11 @@
 import logging
 import random
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from app.agents.anthropic_agent import AnthropicAgent
 from app.agents.openai_agent import OpenAIAgent
 from app.core.prompts import PromptManager
-from app.models.schemas import AgentConfig, HotTakeResponse
+from app.models.schemas import AgentConfig, HotTakeResponse, SourceRecord
 from app.services.news_search_service import NewsSearchService
 from app.services.web_search_service import WebSearchService
 
@@ -35,6 +35,7 @@ class HotTakeService:
 
         # Gather context from various sources
         context_parts = []
+        source_records: List[SourceRecord] = []
 
         # Web search context (general web results)
         if use_web_search:
@@ -45,9 +46,11 @@ class HotTakeService:
                 else:
                     web_service = self.web_search_service
 
-                web_context = await web_service.search_and_format(topic, max_articles)
+                web_results = await web_service.search(topic, max_articles)
+                web_context = web_service.format_search_context(web_results)
                 if web_context and "No web search results" not in web_context:
                     context_parts.append(web_context)
+                source_records.extend(self._build_web_source_records(web_results))
             except Exception as e:
                 logger.warning("Web search failed: %s", e)
 
@@ -55,11 +58,15 @@ class HotTakeService:
         news_context = None
         if use_news_search:
             try:
-                news_context = await self.news_search_service.search_and_format(
+                news_articles = await self.news_search_service.search_recent_news(
                     topic, max_articles
+                )
+                news_context = self.news_search_service.format_news_context(
+                    news_articles
                 )
                 if news_context and "No recent news found" not in news_context:
                     context_parts.append(news_context)
+                source_records.extend(self._build_news_source_records(news_articles))
             except Exception as e:
                 logger.warning("News search failed: %s", e)
 
@@ -78,6 +85,7 @@ class HotTakeService:
             news_context=combined_context
             if (use_web_search or use_news_search)
             else None,
+            sources=source_records if source_records else None,
         )
 
     def get_available_agents(self) -> List[str]:
@@ -102,3 +110,45 @@ class HotTakeService:
 
     def get_available_styles(self) -> List[str]:
         return PromptManager.get_all_available_styles()
+
+    def _build_web_source_records(
+        self, results: List[Dict[str, Any]]
+    ) -> List[SourceRecord]:
+        records: List[SourceRecord] = []
+        for result in results:
+            title = result.get("title", "").strip()
+            url = result.get("url", "").strip()
+            if not title or not url:
+                continue
+            records.append(
+                SourceRecord(
+                    type="web",
+                    title=title,
+                    url=url,
+                    snippet=result.get("snippet", "") or None,
+                    source=result.get("source", "") or None,
+                    published=result.get("published"),
+                )
+            )
+        return records
+
+    def _build_news_source_records(
+        self, articles: List[Dict[str, Any]]
+    ) -> List[SourceRecord]:
+        records: List[SourceRecord] = []
+        for article in articles:
+            title = article.get("title", "").strip()
+            url = article.get("url", "").strip()
+            if not title or not url:
+                continue
+            records.append(
+                SourceRecord(
+                    type="news",
+                    title=title,
+                    url=url,
+                    snippet=article.get("summary", "") or None,
+                    source=article.get("source", "") or None,
+                    published=article.get("published"),
+                )
+            )
+        return records

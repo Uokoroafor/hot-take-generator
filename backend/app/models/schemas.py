@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 
 
@@ -35,6 +35,15 @@ class HotTakeRequest(BaseModel):
         return v
 
 
+class SourceRecord(BaseModel):
+    type: Literal["web", "news"]
+    title: str
+    url: str
+    snippet: Optional[str] = None
+    source: Optional[str] = None
+    published: Optional[datetime] = None
+
+
 class HotTakeResponse(BaseModel):
     hot_take: str
     topic: str
@@ -42,6 +51,7 @@ class HotTakeResponse(BaseModel):
     agent_used: str
     web_search_used: Optional[bool] = False
     news_context: Optional[str] = None
+    sources: Optional[List[SourceRecord]] = None
 
     @field_validator("hot_take", "topic", "style", "agent_used")
     def not_empty_or_whitespace(cls, v: str, field):
