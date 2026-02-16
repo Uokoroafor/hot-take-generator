@@ -39,7 +39,7 @@ class TestOpenAIAgent:
     def test_openai_agent_initialization(self, mock_settings):
         agent = OpenAIAgent()
         assert agent.name == "OpenAI Agent"
-        assert agent.model == "gpt-3.5-turbo"
+        assert agent.model == "gpt-4.1-mini"
         assert agent.temperature == 0.8
 
     def test_openai_agent_custom_initialization(self, mock_settings):
@@ -84,7 +84,7 @@ class TestOpenAIAgent:
         assert result == "AI will dominate the world!"
         mock_client.chat.completions.create.assert_called_once()
         call_args = mock_client.chat.completions.create.call_args
-        assert call_args.kwargs["model"] == "gpt-3.5-turbo"
+        assert call_args.kwargs["model"] == "gpt-4.1-mini"
         assert call_args.kwargs["temperature"] == 0.8
         assert call_args.kwargs["max_tokens"] == 200
 
@@ -104,7 +104,7 @@ class TestAnthropicAgent:
     def test_anthropic_agent_initialization(self, mock_settings):
         agent = AnthropicAgent()
         assert agent.name == "Claude Agent"
-        assert agent.model == "claude-3-haiku-20240307"
+        assert agent.model == "claude-haiku-4-5-20251001"
         assert agent.temperature == 0.8
 
     def test_anthropic_agent_custom_initialization(self, mock_settings):
@@ -147,7 +147,7 @@ class TestAnthropicAgent:
         assert result == "Climate change is overrated!"
         mock_client.messages.create.assert_called_once()
         call_args = mock_client.messages.create.call_args
-        assert call_args.kwargs["model"] == "claude-3-haiku-20240307"
+        assert call_args.kwargs["model"] == "claude-haiku-4-5-20251001"
         assert call_args.kwargs["temperature"] == 0.8
         assert call_args.kwargs["max_tokens"] == 200
 
