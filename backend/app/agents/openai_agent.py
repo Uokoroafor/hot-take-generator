@@ -8,7 +8,7 @@ class OpenAIAgent(BaseAgent):
     def __init__(
         self,
         name: str = "OpenAI Agent",
-        model: str = "gpt-3.5-turbo",
+        model: str = "gpt-4.1-mini",
         temperature: float = 0.8,
     ):
         super().__init__(name, model, temperature)

@@ -8,7 +8,7 @@ class AnthropicAgent(BaseAgent):
     def __init__(
         self,
         name: str = "Claude Agent",
-        model: str = "claude-3-haiku-20240307",
+        model: str = "claude-haiku-4-5-20251001",
         temperature: float = 0.8,
     ):
         super().__init__(name, model, temperature)
