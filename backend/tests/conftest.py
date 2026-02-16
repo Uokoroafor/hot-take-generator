@@ -23,7 +23,7 @@ def client():
 def mock_openai_agent():
     mock = AsyncMock()
     mock.name = "Test OpenAI Agent"
-    mock.model = "gpt-3.5-turbo"
+    mock.model = "gpt-4.1-mini"
     mock.temperature = 0.8
     mock.generate_hot_take.return_value = "This is a test hot take from OpenAI!"
     return mock
@@ -33,7 +33,7 @@ def mock_openai_agent():
 def mock_anthropic_agent():
     mock = AsyncMock()
     mock.name = "Test Anthropic Agent"
-    mock.model = "claude-3-haiku-20240307"
+    mock.model = "claude-haiku-4-5-20251001"
     mock.temperature = 0.8
     mock.generate_hot_take.return_value = "This is a test hot take from Anthropic!"
     return mock

@@ -112,14 +112,14 @@ class TestAgentConfig:
             id="openai",
             name="Test Agent",
             description="A test AI agent",
-            model="gpt-3.5-turbo",
+            model="gpt-4.1-mini",
             temperature=0.7,
             system_prompt="You are a helpful assistant.",
         )
         assert config.id == "openai"
         assert config.name == "Test Agent"
         assert config.description == "A test AI agent"
-        assert config.model == "gpt-3.5-turbo"
+        assert config.model == "gpt-4.1-mini"
         assert config.temperature == 0.7
         assert config.system_prompt == "You are a helpful assistant."
 
@@ -167,7 +167,7 @@ class TestAgentConfig:
             id="anthropic",
             name="Claude Agent",
             description="Anthropic's Claude AI model",
-            model="claude-3-haiku-20240307",
+            model="claude-haiku-4-5-20251001",
             temperature=0.8,
             system_prompt="You are a creative and insightful assistant.",
         )
@@ -176,7 +176,7 @@ class TestAgentConfig:
         assert json_data["id"] == "anthropic"
         assert json_data["name"] == "Claude Agent"
         assert json_data["description"] == "Anthropic's Claude AI model"
-        assert json_data["model"] == "claude-3-haiku-20240307"
+        assert json_data["model"] == "claude-haiku-4-5-20251001"
         assert json_data["temperature"] == 0.8
         assert (
             json_data["system_prompt"] == "You are a creative and insightful assistant."
