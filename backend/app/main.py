@@ -38,6 +38,22 @@ def get_client_ip(request: Request) -> str:
 @app.middleware("http")
 async def basic_rate_limit(request: Request, call_next):
     if request.url.path == "/api/generate" and request.method.upper() == "POST":
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > settings.max_generate_request_bytes:
+                    return JSONResponse(
+                        status_code=413,
+                        content={
+                            "detail": "Request payload too large for /api/generate."
+                        },
+                    )
+            except ValueError:
+                return JSONResponse(
+                    status_code=400,
+                    content={"detail": "Invalid Content-Length header."},
+                )
+
         now = time.time()
         client_ip = get_client_ip(request)
         timestamps = request_timestamps_by_ip[client_ip]

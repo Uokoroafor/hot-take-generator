@@ -129,6 +129,14 @@ class TestHotTakeEndpoints:
         response = client.post("/api/generate", json=invalid_request)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+    def test_generate_hot_take_payload_too_large(self, client):
+        oversized_request = {"topic": "x" * 20000, "style": "controversial"}
+        response = client.post("/api/generate", json=oversized_request)
+        assert response.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+        assert (
+            response.json()["detail"] == "Request payload too large for /api/generate."
+        )
+
     @patch("app.services.hot_take_service.HotTakeService.generate_hot_take")
     def test_generate_hot_take_with_defaults(
         self, mock_generate, client, sample_hot_take_response
