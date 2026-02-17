@@ -16,7 +16,7 @@ describe('Layout', () => {
   it('renders the navigation brand link', () => {
     renderWithRouter();
 
-    const brandLink = screen.getByRole('link', { name: /🔥 hot take generator/i });
+    const brandLink = screen.getByRole('link', { name: /hot take generator/i });
     expect(brandLink).toBeInTheDocument();
     expect(brandLink).toHaveAttribute('href', '/');
   });

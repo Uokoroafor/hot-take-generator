@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
 import './Layout.css';
 
 const Layout = () => {
@@ -14,7 +15,8 @@ const Layout = () => {
         <div className="nav-container">
           <div className="nav-brand">
             <Link to="/" className="brand-link">
-              🔥 Hot Take Generator
+              <img src={logo} alt="Hot Take Generator" className="brand-logo" />
+              Hot Take Generator
             </Link>
           </div>
           <ul className="nav-links">

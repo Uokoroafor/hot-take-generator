@@ -21,7 +21,7 @@ describe('App', () => {
     render(<App />);
 
     // Check that the navigation brand is present
-    const brandLink = screen.getByRole('link', { name: /🔥 hot take generator/i });
+    const brandLink = screen.getByRole('link', { name: /hot take generator/i });
     expect(brandLink).toBeInTheDocument();
   });
 
