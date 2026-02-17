@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     # Basic rate limiting for generation endpoint
     generate_rate_limit_per_minute: int = 30
+    # Max request body size (bytes) for generation endpoint
+    max_generate_request_bytes: int = 16_384
     # Trust proxy header for client IP (recommended on Render)
     trust_x_forwarded_for: bool = True
     model_config = SettingsConfigDict(env_file=".env")
