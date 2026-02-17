@@ -65,9 +65,12 @@ USER app
 # Expose port
 EXPOSE 8000
 
+# Default port; platforms like Render override with PORT.
+ENV PORT=8000
+
 # Health check - using /ready to verify environment configuration
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ready || exit 1
+    CMD sh -c 'curl -f http://localhost:${PORT}/ready || exit 1'
 
 # Start the application
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

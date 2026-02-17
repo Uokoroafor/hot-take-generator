@@ -1,5 +1,10 @@
-from fastapi import FastAPI, Response
+import time
+from collections import defaultdict, deque
+
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from app.api.routes import router as api_router
 from app.core.config import settings
 
@@ -16,6 +21,42 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# In-memory limiter is sufficient for single-instance personal deployments.
+rate_limit_window_seconds = 60
+request_timestamps_by_ip: dict[str, deque[float]] = defaultdict(deque)
+
+
+def get_client_ip(request: Request) -> str:
+    if settings.trust_x_forwarded_for:
+        forwarded_for = request.headers.get("x-forwarded-for")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def basic_rate_limit(request: Request, call_next):
+    if request.url.path == "/api/generate" and request.method.upper() == "POST":
+        now = time.time()
+        client_ip = get_client_ip(request)
+        timestamps = request_timestamps_by_ip[client_ip]
+
+        while timestamps and now - timestamps[0] > rate_limit_window_seconds:
+            timestamps.popleft()
+
+        if len(timestamps) >= settings.generate_rate_limit_per_minute:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": "Rate limit exceeded. Please wait before generating again."
+                },
+            )
+
+        timestamps.append(now)
+
+    return await call_next(request)
+
 
 app.include_router(api_router, prefix="/api")
 
