@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     serper_api_key: Optional[str] = None
     # CORS configuration (comma-separated origins)
     cors_origins: str = "http://localhost:5173"
+    # Basic rate limiting for generation endpoint
+    generate_rate_limit_per_minute: int = 30
+    # Trust proxy header for client IP (recommended on Render)
+    trust_x_forwarded_for: bool = True
     model_config = SettingsConfigDict(env_file=".env")
 
     def get_cors_origins(self) -> list[str]:
