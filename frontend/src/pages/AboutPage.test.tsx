@@ -106,7 +106,7 @@ describe('AboutPage', () => {
 
     expect(screen.getByRole('heading', { name: /^credits$/i })).toBeInTheDocument();
     expect(screen.getByText(/created by/i)).toBeInTheDocument();
-    expect(screen.getByText(/ugochukwu okoroafor/i)).toBeInTheDocument();
+    expect(screen.getByText(/hot take generator contributors/i)).toBeInTheDocument();
   });
 
   it('credits The Arsenal Opinion Podcast in credits section', () => {
