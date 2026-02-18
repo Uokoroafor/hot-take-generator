@@ -17,10 +17,10 @@ Each section includes short-term and long-term goals to guide development.
 - [x] Set up production-ready environment variables and config (`ENVIRONMENT=production`, stricter CORS) - _Environment variable support added_
 - [ ] Add reverse proxy with Nginx or Caddy (TLS, compression)
 - [ ] Add deployment workflows:
-  - [ ] **Frontend**: Deploy to Vercel or Netlify
-  - [ ] **Backend**: Deploy to Fly.io, Render, or Railway
+  - [x] **Frontend**: Deploy to Vercel or Netlify - _Frontend deployed to Vercel_
+  - [x] **Backend**: Deploy to Fly.io, Render, or Railway - _Backend deployed to Render_
 - [ ] Optional: add Helm chart for Kubernetes deployment
-- [ ] Add rate limiting and request size limits
+- [x] Add rate limiting and request size limits - _Per-IP rate limiting and max request payload checks added to `/api/generate`_
 
 ---
 
@@ -47,9 +47,9 @@ Each section includes short-term and long-term goals to guide development.
 
 ## Observability & Monitoring
 
-- [ ] Integrate **Langfuse** for AI observability
-  - [ ] Track prompt inputs, completions, latency, and provider metrics
-  - [ ] Add trace + session IDs to responses
+- [x] Integrate **Langfuse** for AI observability - _Langfuse client integration added with graceful fallback when unconfigured_
+  - [x] Track prompt inputs, completions, latency, and provider metrics - _Request spans and generation observations wired into `/api/generate` flow_
+  - [x] Add trace + session IDs to responses - _Trace ID returned via `X-Trace-Id` response header when available_
   - [ ] Use Langfuse dashboard to monitor agent performance
 - [ ] Evaluate open-source or alternative observability tools:
   - [ ] **Helicone** (LLM observability)
@@ -92,7 +92,7 @@ Each section includes short-term and long-term goals to guide development.
   - [ ] Deploy step
   - [ ] Upload coverage to Codecov
 - [x] Add Dependabot for dependency updates - _Configured for backend (pip), frontend (npm), GitHub Actions, and Docker_
-- [ ] Add `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`
+- [x] Add `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` - _Community contribution and conduct docs added_
 - [x] Add issue and PR templates - _Pull request template added_
 - [ ] Add changelog following "Keep a Changelog" format
 
