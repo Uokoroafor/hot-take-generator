@@ -16,7 +16,7 @@ Thanks for your interest in contributing.
    - `make lint`
    - `make test`
 2. Keep PRs focused and easy to review.
-3. Update docs if behavior or setup changed.
+3. Update docs if behaviour or setup changed.
 
 ## Pull Request Guidelines
 
@@ -29,7 +29,7 @@ Thanks for your interest in contributing.
 When opening an issue, include:
 
 1. Steps to reproduce
-2. Expected vs actual behavior
+2. Expected vs actual behaviour
 3. Logs/screenshots (if helpful)
 4. Your environment (OS, Node/Python versions)
 

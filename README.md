@@ -108,7 +108,7 @@ DEBUG=true
 
 ### Docker Environment Configuration
 
-The Docker setup uses multi-stage builds for optimized production images and properly supports environment variables for both development and production:
+The Docker setup uses multi-stage builds for optimised production images and properly supports environment variables for both development and production:
 
 #### Development Mode
 
@@ -333,7 +333,7 @@ hot-take-generator/
 ## Available Styles
 
 - **Controversial**: Bold, provocative opinions that challenge conventional wisdom
-- **Sarcastic**: Witty, sharp commentary with humor
+- **Sarcastic**: Witty, sharp commentary with humour
 - **Optimistic**: Positive, uplifting perspectives
 - **Pessimistic**: Cynical, worst-case scenario viewpoints
 - **Absurd**: Completely ridiculous and funny takes
@@ -448,7 +448,7 @@ For a detailed roadmap and task breakdown, see [TODO.md](./TODO.md).
 ## Contributing
 
 - See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow.
-- Community behavior expectations are in [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+- Community behaviour expectations are in [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## License
 
