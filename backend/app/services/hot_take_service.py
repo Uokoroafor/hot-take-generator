@@ -6,6 +6,7 @@ from app.agents.anthropic_agent import AnthropicAgent
 from app.agents.openai_agent import OpenAIAgent
 from app.core.prompts import PromptManager
 from app.models.schemas import AgentConfig, HotTakeResponse, SourceRecord
+from app.observability.langfuse import start_generation_observation
 from app.services.news_search_service import NewsSearchService
 from app.services.web_search_service import WebSearchService
 
@@ -73,7 +74,31 @@ class HotTakeService:
         # Combine all context
         combined_context = "\n\n".join(context_parts) if context_parts else None
 
-        hot_take = await agent.generate_hot_take(topic, style, combined_context)
+        with start_generation_observation(
+            name="llm.generate_hot_take",
+            input_data={
+                "topic": topic,
+                "style": style,
+                "has_context": bool(combined_context),
+            },
+            metadata={
+                "agent_type": agent_type or "random",
+                "agent_name": agent.name,
+                "use_web_search": use_web_search,
+                "use_news_search": use_news_search,
+            },
+            model=agent.model,
+            model_parameters={
+                "temperature": agent.temperature,
+                "max_tokens": 250 if combined_context else 200,
+            },
+        ) as generation:
+            hot_take = await agent.generate_hot_take(topic, style, combined_context)
+            if generation and hasattr(generation, "update"):
+                generation.update(
+                    output=hot_take,
+                    metadata={"sources_count": len(source_records)},
+                )
 
         return HotTakeResponse(
             hot_take=hot_take,

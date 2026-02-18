@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.routes import router as api_router
 from app.core.config import settings
+from app.observability.langfuse import flush_langfuse
 
 app = FastAPI(
     title="Hot Take Generator API",
@@ -106,3 +107,8 @@ async def readiness_check(response: Response):
         return {"status": "not_ready", "missing_configuration": missing_config}
 
     return {"status": "ready"}
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    flush_langfuse()
