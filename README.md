@@ -6,6 +6,12 @@
 
 A full-stack application that generates spicy opinions on any topic using AI agents powered by OpenAI and Anthropic models.
 
+## Public Project Notes
+
+- This is a fun personal project and not intended for high-stakes use.
+- Model outputs can be inaccurate or biased.
+- Never commit secrets; use `.env.example` files for configuration templates.
+
 ## About
 This project was inspired by one of my favourite podcasts, [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast), which kicks off each episode with a "Hottest of Takes" segment. Where each presenter has to give a bold and, preferably, controversial opinion about anything or anyone related to Arsenal FC. I wanted to capture that same spirit with AI: a tool that can instantly craft witty, controversial, or thought-provoking takes on any topic. Whether it's something serious, silly, or somewhere in between.
 
@@ -441,12 +447,8 @@ For a detailed roadmap and task breakdown, see [TODO.md](./TODO.md).
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Run the test suite: `pytest`
-6. Submit a pull request
+- See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow.
+- Community behavior expectations are in [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## License
 
