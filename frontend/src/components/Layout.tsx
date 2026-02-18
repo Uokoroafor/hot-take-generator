@@ -31,11 +31,6 @@ const Layout = () => {
               </Link>
             </li>
             <li>
-              <Link to="/styles" className={isActive('/styles') ? 'active' : ''}>
-                Styles
-              </Link>
-            </li>
-            <li>
               <Link to="/agents" className={isActive('/agents') ? 'active' : ''}>
                 Agents
               </Link>

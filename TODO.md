@@ -81,6 +81,7 @@ Each section includes short-term and long-term goals to guide development.
 - [x] Add dark mode and theming support - _Full dark mode with system preference detection_
 - [x] Add "Share Take" button (copy permalink or tweet) - _Copy to clipboard and share to X/Twitter functionality_
 - [x] Add multiple pages for better UX - _History, Styles, Agents, Sources, Settings, and About pages with navigation_
+- [ ] Wire up Style Presets page — integrate with HotTakeGenerator and backend so custom presets (tone, length, emojis) affect generation
 - [ ] Add analytics for style/agent usage (anonymised)
 
 ---

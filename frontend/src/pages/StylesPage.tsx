@@ -1,3 +1,5 @@
+// TODO: Wire up style presets to integrate with HotTakeGenerator and backend API
+// Currently hidden from nav/routing — presets are localStorage-only and don't affect generation
 import { useState, useEffect } from 'react';
 import './Pages.css';
 
