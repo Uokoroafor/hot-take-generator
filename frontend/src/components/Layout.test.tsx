@@ -26,7 +26,6 @@ describe('Layout', () => {
 
     expect(screen.getByRole('link', { name: /^generate$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^history$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^styles$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^agents$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^sources$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^settings$/i })).toBeInTheDocument();
@@ -55,13 +54,6 @@ describe('Layout', () => {
 
     const historyLink = screen.getByRole('link', { name: /^history$/i });
     expect(historyLink).toHaveClass('active');
-  });
-
-  it('highlights active link for /styles route', () => {
-    renderWithRouter('/styles');
-
-    const stylesLink = screen.getByRole('link', { name: /^styles$/i });
-    expect(stylesLink).toHaveClass('active');
   });
 
   it('highlights active link for /agents route', () => {
@@ -103,7 +95,7 @@ describe('Layout', () => {
     renderWithRouter('/history');
 
     const links = screen.getAllByRole('link').filter(link =>
-      ['generate', 'history', 'styles', 'agents', 'sources', 'settings', 'about']
+      ['generate', 'history', 'agents', 'sources', 'settings', 'about']
         .some(name => link.textContent?.toLowerCase() === name)
     );
 
@@ -117,7 +109,6 @@ describe('Layout', () => {
 
     expect(screen.getByRole('link', { name: /^generate$/i })).toHaveAttribute('href', '/generate');
     expect(screen.getByRole('link', { name: /^history$/i })).toHaveAttribute('href', '/history');
-    expect(screen.getByRole('link', { name: /^styles$/i })).toHaveAttribute('href', '/styles');
     expect(screen.getByRole('link', { name: /^agents$/i })).toHaveAttribute('href', '/agents');
     expect(screen.getByRole('link', { name: /^sources$/i })).toHaveAttribute('href', '/sources');
     expect(screen.getByRole('link', { name: /^settings$/i })).toHaveAttribute('href', '/settings');
