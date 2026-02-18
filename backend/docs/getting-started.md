@@ -55,8 +55,6 @@ The backend Dockerfile uses a multi-stage build for production-ready images:
 ```bash
 make setup-env                    # copies backend/.env.example to backend/.env
 docker-compose up                 # dev stack with hot reloading
-docker-compose -f docker-compose.yml \
-               -f docker-compose.prod.yml up --build   # production-like build
 ```
 
 **Multi-Stage Build Benefits:**

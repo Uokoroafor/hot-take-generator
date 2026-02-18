@@ -186,23 +186,6 @@ docker-clean: ## Clean up Docker containers, networks, and volumes
 	docker-compose down -v --remove-orphans
 	docker system prune -f
 
-# Production Docker commands
-docker-prod: ## Start production environment
-	@echo "🐳 Starting production environment..."
-	@$(MAKE) setup-env
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
-
-docker-prod-build: ## Build production Docker images
-	@echo "🐳 Building production Docker images..."
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
-
-docker-prod-detached: ## Start production environment in background
-	@echo "🐳 Starting production environment (detached)..."
-	@$(MAKE) setup-env
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-	@echo "🌐 Application running at: http://localhost"
-	@echo "📋 API docs available at: http://localhost/docs"
-
 # Quick development workflows
 quick-start: install dev ## Install dependencies and start development servers
 quick-start-docker: setup-env docker-up-detached ## Setup and start with Docker

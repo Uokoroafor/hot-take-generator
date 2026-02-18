@@ -115,17 +115,14 @@ docker-compose up
 
 The frontend container receives `VITE_API_BASE_URL=http://localhost:8000` from the compose file.
 
-#### Production Mode
+#### Production Deployments
 
-For production, environment variables are baked into the build at compile time:
+Production deployment is handled separately:
 
-```bash
-# Option 1: Use default production API URL (http://backend:8000)
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+- Frontend on Vercel
+- Backend on Render
 
-# Option 2: Specify custom production API URL
-VITE_API_BASE_URL=https://api.yourdomain.com docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-```
+Set `VITE_API_BASE_URL` in Vercel to your deployed backend URL.
 
 #### Custom Frontend API URL
 
@@ -139,11 +136,7 @@ environment:
 ```
 
 **Production:**
-Set environment variable before building:
-```bash
-export VITE_API_BASE_URL=https://api.yourdomain.com
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-```
+Set `VITE_API_BASE_URL` in your deployment platform (for example, Vercel).
 
 **Important Notes:**
 - Frontend environment variables must be prefixed with `VITE_` to be accessible

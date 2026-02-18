@@ -25,7 +25,10 @@ class Settings(BaseSettings):
     langfuse_public_key: Optional[str] = None
     langfuse_secret_key: Optional[str] = None
     langfuse_host: str = "https://cloud.langfuse.com"
-    model_config = SettingsConfigDict(env_file=".env")
+    # Backward compatibility for existing env naming
+    langfuse_base_url: Optional[str] = None
+    langfuse_tracing_environment: Optional[str] = None
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     def get_cors_origins(self) -> list[str]:
         origins = [
