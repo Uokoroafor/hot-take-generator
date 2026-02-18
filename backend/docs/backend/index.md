@@ -11,7 +11,7 @@ The backend is a FastAPI application that receives hot-take requests, orchestrat
    - assembles a chat completion/message payload
    - returns generated text on success
    - raises runtime errors on provider/API failure
-4. **Search Providers** (`app.services.search_providers.*`): Async providers for Brave and Serper implement a common interface to normalize results, which are then turned into LLM-ready context and `SourceRecord` objects.
+4. **Search Providers** (`app.services.search_providers.*`): Async providers for Brave and Serper implement a common interface to normalise results, which are then turned into LLM-ready context and `SourceRecord` objects.
 5. **Schemas** (`app.models.schemas`): Define the request/response contracts for FastAPI and document generator.
 
 ## API Contract (Current)
@@ -68,7 +68,7 @@ Returns the list of available style names from `PromptManager`.
 | --- | --- |
 | `app/main.py` | Configures FastAPI app, CORS, root/health endpoints, and router mounting |
 | `app/core/config.py` | Centralised environment configuration using `pydantic-settings` |
-| `app/core/prompts.py` | Style catalog, prompt helpers, and agent metadata |
+| `app/core/prompts.py` | Style catalogue, prompt helpers, and agent metadata |
 | `app/services/hot_take_service.py` | Glue layer that picks agents, fetches context, and returns `HotTakeResponse` |
 | `app/services/web_search_service.py` | Provider-agnostic web search orchestrator |
 | `app/services/news_search_service.py` | Asynchronous NewsAPI wrapper with formatting helpers |

@@ -8,7 +8,7 @@ Each section includes short-term and long-term goals to guide development.
 ## Deployment & Infrastructure
 
 ### Short Term
-- [x] Create multi-stage production Dockerfile (builder -> slim runtime) - _Multi-stage build implemented with builder and runtime stages, non-root user, and optimized for production_
+- [x] Create multi-stage production Dockerfile (builder -> slim runtime) - _Multi-stage build implemented with builder and runtime stages, non-root user, and optimised for production_
 - [x] Add `.dockerignore` and non-root user - _`.dockerignore` added to backend and frontend_
 - [x] Enable health checks and restart policies in `docker-compose.yml` - _Health checks and `restart: unless-stopped` configured_
 - [ ] Add `make deploy` target for simplified deployment
