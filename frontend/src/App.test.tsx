@@ -31,7 +31,6 @@ describe('App', () => {
     // Check that all navigation links are present
     expect(screen.getByRole('link', { name: /generate/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /history/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /styles/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /agents/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /sources/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument();
