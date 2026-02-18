@@ -83,25 +83,24 @@ const SettingsPage = () => {
       </div>
 
       <div className="settings-container">
-        <section className="settings-section">
-          <h2>API Configuration</h2>
-          <div className="form-group">
-            <label htmlFor="api-url">API Base URL:</label>
-            <input
-              type="url"
-              id="api-url"
-              value={apiBaseUrl}
-              onChange={(e) => setApiBaseUrl(e.target.value)}
-              placeholder="http://localhost:8000"
-              disabled={isProduction}
-            />
-            <p className="help-text">
-              {isProduction
-                ? 'API URL is managed by deployment environment variables.'
-                : 'The backend API endpoint. Changes require a page refresh to take effect.'}
-            </p>
-          </div>
-        </section>
+        {!isProduction && (
+          <section className="settings-section">
+            <h2>API Configuration</h2>
+            <div className="form-group">
+              <label htmlFor="api-url">API Base URL:</label>
+              <input
+                type="url"
+                id="api-url"
+                value={apiBaseUrl}
+                onChange={(e) => setApiBaseUrl(e.target.value)}
+                placeholder="http://localhost:8000"
+              />
+              <p className="help-text">
+                The backend API endpoint. Changes require a page refresh to take effect.
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="settings-section">
           <h2>Appearance</h2>

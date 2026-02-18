@@ -89,7 +89,7 @@ const AboutPage = () => {
         <section className="about-section">
           <h2>Credits</h2>
           <p>
-            Created by <strong>Ugochukwu Okoroafor</strong>
+            Created by the Hot Take Generator contributors
           </p>
           <p className="help-text">
             Inspired by The Arsenal Opinion Podcast's "Hottest of Takes" segment.
