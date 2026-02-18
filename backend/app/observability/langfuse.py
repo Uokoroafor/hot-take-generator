@@ -38,7 +38,7 @@ def get_langfuse_client() -> Any | None:
         _langfuse_client = Langfuse(
             public_key=settings.langfuse_public_key,
             secret_key=settings.langfuse_secret_key,
-            host=settings.langfuse_host,
+            host=settings.langfuse_base_url or settings.langfuse_host,
         )
     except Exception:
         logger.exception("Failed to initialize Langfuse client.")
@@ -53,7 +53,12 @@ def start_request_span(
     client = get_langfuse_client()
     if not client:
         return nullcontext(None)
-    return client.start_as_current_span(name=name, input=input_data, metadata=metadata)
+    merged_metadata = dict(metadata)
+    if settings.langfuse_tracing_environment:
+        merged_metadata["environment"] = settings.langfuse_tracing_environment
+    return client.start_as_current_span(
+        name=name, input=input_data, metadata=merged_metadata
+    )
 
 
 def start_generation_observation(
@@ -67,11 +72,14 @@ def start_generation_observation(
     client = get_langfuse_client()
     if not client:
         return nullcontext(None)
+    merged_metadata = dict(metadata)
+    if settings.langfuse_tracing_environment:
+        merged_metadata["environment"] = settings.langfuse_tracing_environment
     return client.start_as_current_observation(
         name=name,
         as_type="generation",
         input=input_data,
-        metadata=metadata,
+        metadata=merged_metadata,
         model=model,
         model_parameters=model_parameters,
     )
