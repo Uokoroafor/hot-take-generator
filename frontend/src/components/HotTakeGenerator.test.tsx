@@ -141,7 +141,7 @@ describe('HotTakeGenerator', () => {
     });
   });
 
-  it('shows news articles count selector only when news search is enabled', async () => {
+  it('shows source count selector when any search mode is enabled', async () => {
     const user = userEvent.setup();
     render(<HotTakeGenerator />);
 
@@ -149,19 +149,23 @@ describe('HotTakeGenerator', () => {
     const newsSearchCheckbox = screen.getByLabelText(/include recent news articles/i);
 
     // Initially hidden
-    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of sources to include/i)).not.toBeInTheDocument();
 
-    // Should NOT show when only web search is checked
+    // Should show when web search is checked
     await user.click(webSearchCheckbox);
-    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/number of sources to include/i)).toBeInTheDocument();
 
-    // Should show when news search is checked
+    // Should stay visible when news search is checked
     await user.click(newsSearchCheckbox);
-    expect(screen.getByLabelText(/number of news articles to include/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/number of sources to include/i)).toBeInTheDocument();
 
-    // Should hide when news search is unchecked
+    // Should remain visible while at least one search option is checked
+    await user.click(webSearchCheckbox);
+    expect(screen.getByLabelText(/number of sources to include/i)).toBeInTheDocument();
+
+    // Should hide when all search options are unchecked
     await user.click(newsSearchCheckbox);
-    expect(screen.queryByLabelText(/number of news articles to include/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/number of sources to include/i)).not.toBeInTheDocument();
   });
 
   it('changes style when dropdown is selected', async () => {
@@ -204,8 +208,17 @@ describe('HotTakeGenerator', () => {
     await user.click(webSearchCheckbox);
     await user.click(newsSearchCheckbox);
 
-    const maxArticlesSelect = screen.getByLabelText(/number of news articles to include/i);
+    const maxArticlesSelect = screen.getByLabelText(/number of sources to include/i);
     await user.selectOptions(maxArticlesSelect, '5');
+
+    const providerSelect = screen.getByLabelText(/web search provider/i);
+    await user.selectOptions(providerSelect, 'brave');
+
+    const newsDaysSelect = screen.getByLabelText(/news recency window/i);
+    await user.selectOptions(newsDaysSelect, '7');
+
+    const strictModeCheckbox = screen.getByLabelText(/strict source quality mode/i);
+    await user.click(strictModeCheckbox);
 
     await user.click(submitButton);
 
@@ -223,6 +236,9 @@ describe('HotTakeGenerator', () => {
             use_web_search: true,
             use_news_search: true,
             max_articles: 5,
+            web_search_provider: 'brave',
+            news_days: 7,
+            strict_quality_mode: true,
           }),
         })
       );
