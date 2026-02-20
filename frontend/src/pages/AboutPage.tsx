@@ -30,8 +30,8 @@ const AboutPage = () => {
             <li>🔍 Web search integration for timely, context-aware takes</li>
             <li>📰 News search for current events</li>
             <li>🌙 Dark mode support</li>
-            <li>💾 Save and manage your favorite hot takes</li>
-            <li>⚙️ Customizable style presets</li>
+            <li>💾 Save and manage your favourite hot takes</li>
+            <li>⚙️ Customisable style presets</li>
             <li>📊 Agent performance monitoring</li>
           </ul>
         </section>

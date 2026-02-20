@@ -14,7 +14,7 @@ interface StylePreset {
 
 const DEFAULT_STYLES: StylePreset[] = [
   { id: '1', name: 'Controversial', tone: 'bold and provocative', length: 'medium', useEmojis: false, description: 'Challenge conventional wisdom' },
-  { id: '2', name: 'Sarcastic', tone: 'witty and sharp', length: 'short', useEmojis: true, description: 'Humor with a bite' },
+  { id: '2', name: 'Sarcastic', tone: 'witty and sharp', length: 'short', useEmojis: true, description: 'Humour with a bite' },
   { id: '3', name: 'Optimistic', tone: 'positive and uplifting', length: 'medium', useEmojis: true, description: 'See the bright side' },
   { id: '4', name: 'Analytical', tone: 'deep and nuanced', length: 'long', useEmojis: false, description: 'Thorough breakdown' },
 ];
