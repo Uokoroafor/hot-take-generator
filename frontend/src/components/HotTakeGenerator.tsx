@@ -49,6 +49,9 @@ const HotTakeGenerator = () => {
   const [useWebSearch, setUseWebSearch] = useState(false);
   const [useNewsSearch, setUseNewsSearch] = useState(false);
   const [maxArticles, setMaxArticles] = useState(3);
+  const [webSearchProvider, setWebSearchProvider] = useState('');
+  const [newsDays, setNewsDays] = useState(14);
+  const [strictQualityMode, setStrictQualityMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hotTake, setHotTake] = useState<HotTakeResponse | null>(null);
   const [error, setError] = useState('');
@@ -175,6 +178,9 @@ const HotTakeGenerator = () => {
             use_web_search: useWebSearch,
             use_news_search: useNewsSearch,
             max_articles: maxArticles,
+            web_search_provider: webSearchProvider || undefined,
+            news_days: newsDays,
+            strict_quality_mode: strictQualityMode,
           }),
         });
       } finally {
@@ -339,18 +345,69 @@ const HotTakeGenerator = () => {
           </p>
         </div>
 
+        {useWebSearch && (
+          <div className="form-group">
+            <label htmlFor="webSearchProvider">Web search provider:</label>
+            <select
+              id="webSearchProvider"
+              value={webSearchProvider}
+              onChange={(e) => setWebSearchProvider(e.target.value)}
+            >
+              <option value="">Auto-select provider</option>
+              <option value="brave">Brave</option>
+              <option value="serper">Serper (Google)</option>
+            </select>
+          </div>
+        )}
+
         {useNewsSearch && (
           <div className="form-group">
-            <label htmlFor="maxArticles">Number of news articles to include:</label>
+            <label htmlFor="newsDays">News recency window:</label>
+            <select
+              id="newsDays"
+              value={newsDays}
+              onChange={(e) => setNewsDays(Number(e.target.value))}
+            >
+              <option value={3}>Last 3 days</option>
+              <option value={7}>Last 7 days</option>
+              <option value={14}>Last 14 days</option>
+              <option value={30}>Last 30 days</option>
+            </select>
+          </div>
+        )}
+
+        {(useWebSearch || useNewsSearch) && (
+          <div className="form-group">
+            <div className="checkbox-group">
+              <input
+                type="checkbox"
+                id="strictQualityMode"
+                checked={strictQualityMode}
+                onChange={(e) => setStrictQualityMode(e.target.checked)}
+                aria-describedby="strict-quality-help"
+              />
+              <label htmlFor="strictQualityMode">
+                Strict source quality mode
+              </label>
+            </div>
+            <p id="strict-quality-help" className="help-text">
+              Filters low-signal results and prioritizes stronger, more relevant sources
+            </p>
+          </div>
+        )}
+
+        {(useWebSearch || useNewsSearch) && (
+          <div className="form-group">
+            <label htmlFor="maxArticles">Number of sources to include:</label>
             <select
               id="maxArticles"
               value={maxArticles}
               onChange={(e) => setMaxArticles(Number(e.target.value))}
             >
-              <option value={1}>1 article</option>
-              <option value={2}>2 articles</option>
-              <option value={3}>3 articles</option>
-              <option value={5}>5 articles</option>
+              <option value={1}>1 source</option>
+              <option value={2}>2 sources</option>
+              <option value={3}>3 sources</option>
+              <option value={5}>5 sources</option>
             </select>
           </div>
         )}
