@@ -1,5 +1,5 @@
 {
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- frontend/",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- .",
   "rewrites": [
     {
       "source": "/(.*)",
