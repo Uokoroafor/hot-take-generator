@@ -3,6 +3,7 @@ import logging
 from typing import List, Dict, Any
 from .base import SearchProvider
 from app.core.config import settings
+from app.services.search_quality import parse_date_string
 
 logger = logging.getLogger(__name__)
 
@@ -60,18 +61,7 @@ class SerperSearchProvider(SearchProvider):
 
         for item in organic_results:
             try:
-                # Serper doesn't provide publish dates by default
-                published = None
-
-                # Extract date if available in snippet
-                date_str = item.get("date")
-                if date_str:
-                    try:
-                        # Serper sometimes includes dates, parse if possible
-                        # Format varies, so we'll leave as None for now
-                        published = None
-                    except Exception:
-                        published = None
+                published = parse_date_string(item.get("date"))
 
                 results.append(
                     {

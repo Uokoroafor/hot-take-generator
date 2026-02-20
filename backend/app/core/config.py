@@ -12,6 +12,19 @@ class Settings(BaseSettings):
     # Web search APIs
     brave_api_key: Optional[str] = None
     serper_api_key: Optional[str] = None
+    # Search quality controls
+    search_news_days_default: int = 14
+    search_domain_allowlist: str = ""
+    search_domain_blocklist: str = ""
+    search_trusted_domains: str = (
+        "reuters.com,apnews.com,bbc.com,nytimes.com,wsj.com,bloomberg.com,"
+        "theguardian.com,cnbc.com,techcrunch.com,arstechnica.com"
+    )
+    search_score_weight_relevance: float = 0.60
+    search_score_weight_recency: float = 0.20
+    search_score_weight_snippet: float = 0.10
+    search_score_weight_domain: float = 0.10
+    search_score_strict_no_overlap_penalty: float = 0.35
     # CORS configuration (comma-separated origins)
     cors_origins: str = "http://localhost:5173"
     # Basic rate limiting for generation endpoint
