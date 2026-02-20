@@ -151,6 +151,166 @@ class TestNewWebSearchService:
                 assert "serper" not in configured
 
 
+class TestWebSearchRankingAndFiltering:
+    """Tests for the new ranking and filtering pipeline."""
+
+    @pytest.mark.asyncio
+    async def test_search_strict_quality_mode_filters_weak_results(self):
+        """Test strict mode filters out low-quality results."""
+        with patch(
+            "app.services.search_providers.brave_provider.settings"
+        ) as mock_settings:
+            mock_settings.brave_api_key = "test_key"
+            service = WebSearchService(provider_name="brave")
+
+            mock_results = [
+                {
+                    "title": "AI artificial intelligence breakthrough",
+                    "url": "https://reuters.com/ai-news",
+                    "snippet": "A " * 50
+                    + "artificial intelligence research developments and advances in the field",
+                    "source": "reuters.com",
+                    "published": datetime.now(timezone.utc),
+                },
+                {
+                    "title": "Unrelated short result",
+                    "url": "https://spam.com/clickbait",
+                    "snippet": "Short",
+                    "source": "spam.com",
+                    "published": None,
+                },
+            ]
+
+            with patch.object(service.provider, "search", return_value=mock_results):
+                results = await service.search(
+                    "artificial intelligence",
+                    max_results=5,
+                    strict_quality_mode=True,
+                )
+
+                titles = [r["title"] for r in results]
+                assert "Unrelated short result" not in titles
+
+    @pytest.mark.asyncio
+    async def test_search_deduplicates_results(self):
+        """Test that duplicate URLs are removed."""
+        with patch(
+            "app.services.search_providers.brave_provider.settings"
+        ) as mock_settings:
+            mock_settings.brave_api_key = "test_key"
+            service = WebSearchService(provider_name="brave")
+
+            mock_results = [
+                {
+                    "title": "AI Article",
+                    "url": "https://example.com/ai",
+                    "snippet": "Artificial intelligence news and developments",
+                    "source": "example.com",
+                    "published": None,
+                },
+                {
+                    "title": "AI Article Duplicate",
+                    "url": "https://example.com/ai",
+                    "snippet": "Artificial intelligence news duplicate",
+                    "source": "example.com",
+                    "published": None,
+                },
+            ]
+
+            with patch.object(service.provider, "search", return_value=mock_results):
+                results = await service.search("AI", max_results=5)
+                assert len(results) == 1
+
+    @pytest.mark.asyncio
+    async def test_search_ranks_by_quality_score(self):
+        """Test that results are ranked by quality score."""
+        with patch(
+            "app.services.search_providers.brave_provider.settings"
+        ) as mock_settings:
+            mock_settings.brave_api_key = "test_key"
+            service = WebSearchService(provider_name="brave")
+            service.trusted_domains = {"reuters.com"}
+
+            mock_results = [
+                {
+                    "title": "Random blog about cooking",
+                    "url": "https://blog.com/food",
+                    "snippet": "Cooking recipes and tips for home chefs and food lovers",
+                    "source": "blog.com",
+                    "published": None,
+                },
+                {
+                    "title": "AI artificial intelligence breakthrough update",
+                    "url": "https://reuters.com/ai",
+                    "snippet": "Major artificial intelligence AI breakthrough announced by researchers today",
+                    "source": "reuters.com",
+                    "published": datetime.now(timezone.utc),
+                },
+            ]
+
+            with patch.object(service.provider, "search", return_value=mock_results):
+                results = await service.search("artificial intelligence", max_results=5)
+
+                # The relevant reuters article should rank first
+                assert len(results) == 2
+                assert "reuters.com" in results[0].get(
+                    "source", results[0].get("url", "")
+                )
+
+    @pytest.mark.asyncio
+    async def test_search_respects_blocklist(self):
+        """Test that blocklisted domains are filtered out."""
+        with patch(
+            "app.services.search_providers.brave_provider.settings"
+        ) as mock_settings:
+            mock_settings.brave_api_key = "test_key"
+            service = WebSearchService(provider_name="brave")
+            service.blocklist = {"blocked.com"}
+
+            mock_results = [
+                {
+                    "title": "Good article",
+                    "url": "https://good.com/article",
+                    "snippet": "Good content about AI technology",
+                    "source": "good.com",
+                    "published": None,
+                },
+                {
+                    "title": "Blocked article",
+                    "url": "https://blocked.com/article",
+                    "snippet": "Content from blocked domain about technology",
+                    "source": "blocked.com",
+                    "published": None,
+                },
+            ]
+
+            with patch.object(service.provider, "search", return_value=mock_results):
+                results = await service.search("AI", max_results=5)
+                domains = [r.get("source", "") for r in results]
+                assert "blocked.com" not in domains
+
+    @pytest.mark.asyncio
+    async def test_search_strict_mode_fetches_more(self):
+        """Test that strict mode requests more results for filtering."""
+        with patch(
+            "app.services.search_providers.brave_provider.settings"
+        ) as mock_settings:
+            mock_settings.brave_api_key = "test_key"
+            service = WebSearchService(provider_name="brave")
+
+            with patch.object(
+                service.provider, "search", return_value=[]
+            ) as mock_search:
+                await service.search("AI", max_results=5, strict_quality_mode=True)
+                # strict mode: min(20, 5 * 3) = 15
+                mock_search.assert_called_once_with("AI", 15)
+
+                mock_search.reset_mock()
+                await service.search("AI", max_results=5, strict_quality_mode=False)
+                # normal mode: min(20, 5 * 2) = 10
+                mock_search.assert_called_once_with("AI", 10)
+
+
 class TestWebSearchIntegration:
     """Test web search integration with the hot take service"""
 
