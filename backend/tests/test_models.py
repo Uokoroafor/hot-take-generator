@@ -183,6 +183,54 @@ class TestAgentConfig:
         )
 
 
+class TestHotTakeRequestNewFields:
+    def test_news_days_default(self):
+        request = HotTakeRequest(topic="test topic")
+        assert request.news_days == 14
+        assert request.strict_quality_mode is False
+
+    def test_news_days_valid_values(self):
+        for days in [1, 7, 14, 30, 90]:
+            request = HotTakeRequest(topic="test", news_days=days)
+            assert request.news_days == days
+
+    def test_news_days_too_low(self):
+        with pytest.raises(ValidationError):
+            HotTakeRequest(topic="test", news_days=0)
+
+    def test_news_days_too_high(self):
+        with pytest.raises(ValidationError):
+            HotTakeRequest(topic="test", news_days=91)
+
+    def test_news_days_none_allowed(self):
+        request = HotTakeRequest(topic="test", news_days=None)
+        assert request.news_days is None
+
+    def test_strict_quality_mode(self):
+        request = HotTakeRequest(topic="test", strict_quality_mode=True)
+        assert request.strict_quality_mode is True
+
+    def test_all_new_fields_together(self):
+        request = HotTakeRequest(
+            topic="AI news",
+            use_web_search=True,
+            use_news_search=True,
+            web_search_provider="brave",
+            news_days=7,
+            strict_quality_mode=True,
+            max_articles=5,
+        )
+        assert request.news_days == 7
+        assert request.strict_quality_mode is True
+        assert request.web_search_provider == "brave"
+
+    def test_new_fields_json_serialization(self):
+        request = HotTakeRequest(topic="test", news_days=7, strict_quality_mode=True)
+        json_data = request.model_dump()
+        assert json_data["news_days"] == 7
+        assert json_data["strict_quality_mode"] is True
+
+
 class TestModelCompatibility:
     def test_request_response_compatibility(self):
         request = HotTakeRequest(topic="space exploration", style="optimistic")
