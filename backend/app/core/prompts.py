@@ -25,7 +25,12 @@ class StylePrompts:
 class NewsContextPrompts:
     """Unified prompt for incorporating news context into hot takes."""
 
-    NEWS_SUFFIX = " When provided with recent news context, incorporate those current events into your hot take to make it timely and relevant. Use the news to support your perspective or provide counterpoints."
+    NEWS_SUFFIX = (
+        " When recent web/news context is provided, ground claims in that evidence."
+        " Favor strong, recent, and credible sources over weak or clickbait sources."
+        " If evidence conflicts, acknowledge the conflict briefly."
+        " Do not invent facts that are not supported by the provided context."
+    )
 
 
 class AgentType(Enum):

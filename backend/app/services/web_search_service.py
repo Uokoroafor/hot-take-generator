@@ -1,9 +1,18 @@
 from typing import List, Dict, Any, Optional
 import logging
+from app.core.config import settings
 from app.services.search_providers import (
     SearchProvider,
     BraveSearchProvider,
     SerperSearchProvider,
+)
+from app.services.search_quality import (
+    SearchQualityConfig,
+    dedupe_records,
+    domain_allowed,
+    extract_domain,
+    score_record,
+    tokenize,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,6 +52,12 @@ class WebSearchService:
         else:
             logger.warning("No search provider configured")
 
+        self._quality = SearchQualityConfig(settings)
+        self.allowlist = self._quality.allowlist
+        self.blocklist = self._quality.blocklist
+        self.trusted_domains = self._quality.trusted_domains
+        self.score_weights = self._quality.score_weights
+
     def _get_first_configured_provider(self) -> Optional[SearchProvider]:
         """Get the first configured provider."""
         for provider in self.providers.values():
@@ -50,7 +65,12 @@ class WebSearchService:
                 return provider
         return None
 
-    async def search(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
+    async def search(
+        self,
+        query: str,
+        max_results: int = 5,
+        strict_quality_mode: bool = False,
+    ) -> List[Dict[str, Any]]:
         """
         Search the web for the given query.
 
@@ -75,11 +95,69 @@ class WebSearchService:
             return []
 
         try:
-            results = await self.provider.search(query, max_results)
-            return results
+            fetch_count = min(20, max_results * (3 if strict_quality_mode else 2))
+            results = await self.provider.search(query, fetch_count)
+            return self._rank_and_filter_results(
+                query=query,
+                results=results,
+                max_results=max_results,
+                strict_quality_mode=strict_quality_mode,
+            )
         except Exception as e:
             logger.error(f"Search failed with provider {self.provider.name}: {e}")
             return []
+
+    def _rank_and_filter_results(
+        self,
+        *,
+        query: str,
+        results: List[Dict[str, Any]],
+        max_results: int,
+        strict_quality_mode: bool,
+    ) -> List[Dict[str, Any]]:
+        topic_tokens = tokenize(query)
+        filtered: List[Dict[str, Any]] = []
+
+        for result in results:
+            title = (result.get("title") or "").strip()
+            url = (result.get("url") or "").strip()
+            if not title or not url:
+                continue
+
+            domain = extract_domain(result.get("source") or url)
+            if not domain_allowed(domain, self.allowlist, self.blocklist):
+                continue
+            result["source"] = domain
+
+            if strict_quality_mode:
+                snippet = (result.get("snippet") or "").strip()
+                overlap = len(topic_tokens & tokenize(f"{title} {snippet}"))
+                if len(snippet) < 80 or overlap == 0:
+                    continue
+
+            filtered.append(result)
+
+        deduped = dedupe_records(filtered)
+        for item in deduped:
+            item["_quality_score"] = score_record(
+                item,
+                topic_tokens=topic_tokens,
+                topic_text=query,
+                trusted_domains=self.trusted_domains,
+                recency_days=30,
+                strict_quality_mode=strict_quality_mode,
+                **self.score_weights,
+            )
+
+        ranked = sorted(
+            deduped,
+            key=lambda r: (r.get("_quality_score", 0.0), bool(r.get("published"))),
+            reverse=True,
+        )
+        final_results = ranked[:max_results]
+        for item in final_results:
+            item.pop("_quality_score", None)
+        return final_results
 
     def format_search_context(self, results: List[Dict[str, Any]]) -> str:
         """Format search results into a context string for the LLM."""
@@ -113,9 +191,11 @@ class WebSearchService:
 
         return "\n".join(context_parts)
 
-    async def search_and_format(self, query: str, max_results: int = 5) -> str:
+    async def search_and_format(
+        self, query: str, max_results: int = 5, strict_quality_mode: bool = False
+    ) -> str:
         """Search the web and return formatted context string."""
-        results = await self.search(query, max_results)
+        results = await self.search(query, max_results, strict_quality_mode)
         return self.format_search_context(results)
 
     def get_available_providers(self) -> List[str]:

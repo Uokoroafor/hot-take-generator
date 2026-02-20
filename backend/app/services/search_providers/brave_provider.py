@@ -3,6 +3,7 @@ import logging
 from typing import List, Dict, Any
 from .base import SearchProvider
 from app.core.config import settings
+from app.services.search_quality import parse_date_string
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +62,7 @@ class BraveSearchProvider(SearchProvider):
 
         for item in web_results:
             try:
-                # Parse age field if available (e.g., "2 days ago")
-                published = None
-                if "age" in item and item["age"]:
-                    # For now, we'll set published to None
-                    # Brave doesn't always provide exact dates
-                    published = None
+                published = parse_date_string(item.get("age") or item.get("page_age"))
 
                 results.append(
                     {

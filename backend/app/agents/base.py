@@ -29,6 +29,12 @@ class BaseAgent(ABC):
 Recent news context:
 {news_context}
 
-Based on the above recent news and current context, generate a hot take about: {topic}"""
+Instructions:
+- Base your take on the strongest evidence in the context.
+- Ignore low-signal details and unsupported claims.
+- If sources disagree, briefly note the tension.
+- Keep it punchy, but fact-grounded.
+
+Generate a hot take about: {topic}"""
         else:
             return f"Generate a hot take about: {topic}"

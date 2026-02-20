@@ -12,6 +12,8 @@ class HotTakeRequest(BaseModel):
     use_news_search: Optional[bool] = False
     max_articles: Optional[int] = 3
     web_search_provider: Optional[str] = None  # 'brave', 'serper', or None for auto
+    news_days: Optional[int] = 14
+    strict_quality_mode: Optional[bool] = False
 
     @field_validator("topic")
     @classmethod
@@ -32,6 +34,15 @@ class HotTakeRequest(BaseModel):
     def validate_agent_type(cls, v):
         if v and v not in ["openai", "anthropic"]:
             raise ValueError("agent_type must be 'openai', 'anthropic', or None")
+        return v
+
+    @field_validator("news_days")
+    @classmethod
+    def validate_news_days(cls, v):
+        if v is None:
+            return v
+        if v < 1 or v > 90:
+            raise ValueError("news_days must be between 1 and 90")
         return v
 
 

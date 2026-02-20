@@ -28,6 +28,8 @@ class HotTakeService:
         use_news_search: bool = False,
         max_articles: int = 3,
         web_search_provider: Optional[str] = None,
+        news_days: Optional[int] = None,
+        strict_quality_mode: bool = False,
     ) -> HotTakeResponse:
         if agent_type and agent_type in self.agents:
             agent = self.agents[agent_type]
@@ -47,7 +49,11 @@ class HotTakeService:
                 else:
                     web_service = self.web_search_service
 
-                web_results = await web_service.search(topic, max_articles)
+                web_results = await web_service.search(
+                    topic,
+                    max_articles,
+                    strict_quality_mode=strict_quality_mode,
+                )
                 web_context = web_service.format_search_context(web_results)
                 if web_context and "No web search results" not in web_context:
                     context_parts.append(web_context)
@@ -60,7 +66,10 @@ class HotTakeService:
         if use_news_search:
             try:
                 news_articles = await self.news_search_service.search_recent_news(
-                    topic, max_articles
+                    topic,
+                    max_articles,
+                    days_back=news_days,
+                    strict_quality_mode=strict_quality_mode,
                 )
                 news_context = self.news_search_service.format_news_context(
                     news_articles
@@ -86,6 +95,8 @@ class HotTakeService:
                 "agent_name": agent.name,
                 "use_web_search": use_web_search,
                 "use_news_search": use_news_search,
+                "news_days": news_days,
+                "strict_quality_mode": strict_quality_mode,
             },
             model=agent.model,
             model_parameters={

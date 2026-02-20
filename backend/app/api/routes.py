@@ -29,6 +29,8 @@ async def generate_hot_take(request: HotTakeRequest, response: Response):
                 use_news_search=request.use_news_search,
                 max_articles=request.max_articles,
                 web_search_provider=request.web_search_provider,
+                news_days=request.news_days,
+                strict_quality_mode=request.strict_quality_mode,
             )
             if span and hasattr(span, "update"):
                 span.update(
