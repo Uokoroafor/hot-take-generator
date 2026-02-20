@@ -45,8 +45,8 @@ describe('AboutPage', () => {
     expect(screen.getByText(/web search integration/i)).toBeInTheDocument();
     expect(screen.getByText(/news search/i)).toBeInTheDocument();
     expect(screen.getByText(/dark mode support/i)).toBeInTheDocument();
-    expect(screen.getByText(/save and manage your favorite hot takes/i)).toBeInTheDocument();
-    expect(screen.getByText(/customizable style presets/i)).toBeInTheDocument();
+    expect(screen.getByText(/save and manage your favourite hot takes/i)).toBeInTheDocument();
+    expect(screen.getByText(/customisable style presets/i)).toBeInTheDocument();
     expect(screen.getByText(/agent performance monitoring/i)).toBeInTheDocument();
   });
 

@@ -296,6 +296,6 @@ describe('StylesPage', () => {
     expect(screen.getByLabelText(/^tone/i)).toHaveValue('witty and sharp');
     expect(screen.getByLabelText(/length/i)).toHaveValue('short');
     expect(screen.getByLabelText(/use emojis in hot takes/i)).toBeChecked();
-    expect(screen.getByLabelText(/description/i)).toHaveValue('Humor with a bite');
+    expect(screen.getByLabelText(/description/i)).toHaveValue('Humour with a bite');
   });
 });
