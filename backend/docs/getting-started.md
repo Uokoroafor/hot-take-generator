@@ -32,6 +32,9 @@ Key environment variables supported by `app.core.config.Settings`:
 | `CORS_ORIGINS` | Comma-separated allowed frontend origins (default: `http://localhost:5173`) |
 | `ENVIRONMENT` | Set to `development` or `production` (default: `development`) |
 | `DEBUG` | Enable debug mode (default: `true`) |
+| `REDIS_URL` | Enables Redis cache for no-search generation requests |
+| `CACHE_TTL_SECONDS` | Cache TTL in seconds (default: `86400`) |
+| `CACHE_VARIANT_POOL_SIZE` | Max cached variants per key (default: `5`) |
 
 The FastAPI docs are available at `http://localhost:8000/docs` once the server is running.
 
@@ -64,6 +67,27 @@ docker-compose up                 # dev stack with hot reloading
 - Smaller image size (~509MB) compared to single-stage builds
 
 For production images, set `VITE_API_BASE_URL` before building so the frontend knows where to reach the API.
+
+## Inspect Redis Cache (Local Docker)
+
+List cached hot-take keys:
+
+```bash
+docker exec hot-take-redis redis-cli --scan --pattern 'hot_take:*'
+```
+
+Inspect one key:
+
+```bash
+docker exec hot-take-redis redis-cli GET "hot_take:ai:controversial:openai"
+docker exec hot-take-redis redis-cli TTL "hot_take:ai:controversial:openai"
+```
+
+Pretty-print the cached JSON array:
+
+```bash
+docker exec hot-take-redis redis-cli GET "hot_take:ai:controversial:openai" | jq
+```
 
 ## Testing
 
