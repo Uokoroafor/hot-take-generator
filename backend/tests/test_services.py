@@ -1,5 +1,6 @@
 import pytest
-from unittest.mock import AsyncMock, patch
+from contextlib import nullcontext
+from unittest.mock import AsyncMock, MagicMock, patch
 from app.services.hot_take_service import HotTakeService
 from app.models.schemas import HotTakeResponse
 
@@ -171,6 +172,135 @@ class TestHotTakeService:
         assert result.style == "controversial"  # default style
         mock_openai_instance.generate_hot_take.assert_called_once_with(
             "test topic", "controversial", None
+        )
+
+    @pytest.mark.asyncio
+    @patch("app.services.hot_take_service.start_generation_observation")
+    @patch("app.services.hot_take_service.OpenAIAgent")
+    @patch("app.services.hot_take_service.AnthropicAgent")
+    async def test_generate_hot_take_uses_cached_variant_when_pool_is_full(
+        self,
+        mock_anthropic,
+        mock_openai,
+        mock_start_generation_observation,
+    ):
+        mock_openai_instance = AsyncMock()
+        mock_openai_instance.name = "OpenAI Agent"
+        mock_openai.return_value = mock_openai_instance
+        mock_anthropic.return_value = AsyncMock()
+
+        generation = MagicMock()
+        mock_start_generation_observation.return_value = nullcontext(generation)
+
+        service = HotTakeService()
+        service.cache.max_variants = 5
+        service.cache.get_random_variant = AsyncMock(
+            return_value=(
+                {
+                    "hot_take": "Cached take",
+                    "topic": "test topic",
+                    "style": "controversial",
+                    "agent_used": "OpenAI Agent",
+                    "web_search_used": False,
+                    "news_context": None,
+                    "sources": None,
+                },
+                5,
+            )
+        )
+        service.cache.add_variant = AsyncMock()
+
+        result = await service.generate_hot_take(
+            topic="test topic",
+            style="controversial",
+            agent_type="openai",
+        )
+
+        assert result.hot_take == "Cached take"
+        mock_openai_instance.generate_hot_take.assert_not_called()
+        service.cache.add_variant.assert_not_called()
+
+        call_kwargs = mock_start_generation_observation.call_args.kwargs
+        assert call_kwargs["metadata"]["cache_hit"] is True
+        assert call_kwargs["metadata"]["cache_pool_size"] == 5
+        assert call_kwargs["model"] == "cache"
+        generation.update.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("app.services.hot_take_service.start_generation_observation")
+    @patch("app.services.hot_take_service.OpenAIAgent")
+    @patch("app.services.hot_take_service.AnthropicAgent")
+    async def test_generate_hot_take_builds_variant_pool_until_full(
+        self,
+        mock_anthropic,
+        mock_openai,
+        mock_start_generation_observation,
+    ):
+        mock_openai_instance = AsyncMock()
+        mock_openai_instance.name = "OpenAI Agent"
+        mock_openai_instance.model = "gpt-test"
+        mock_openai_instance.temperature = 0.8
+        mock_openai_instance.generate_hot_take.return_value = "Fresh take"
+        mock_openai.return_value = mock_openai_instance
+        mock_anthropic.return_value = AsyncMock()
+
+        mock_start_generation_observation.return_value = nullcontext(None)
+
+        service = HotTakeService()
+        service.cache.max_variants = 5
+        service.cache.get_random_variant = AsyncMock(
+            return_value=(
+                {
+                    "hot_take": "Cached but pool not full",
+                    "topic": "test topic",
+                    "style": "controversial",
+                    "agent_used": "OpenAI Agent",
+                },
+                4,
+            )
+        )
+        service.cache.add_variant = AsyncMock(return_value=5)
+
+        result = await service.generate_hot_take(
+            topic="test topic",
+            style="controversial",
+            agent_type="openai",
+        )
+
+        assert result.hot_take == "Fresh take"
+        mock_openai_instance.generate_hot_take.assert_called_once_with(
+            "test topic", "controversial", None
+        )
+        service.cache.add_variant.assert_called_once()
+
+        call_kwargs = mock_start_generation_observation.call_args.kwargs
+        assert call_kwargs["metadata"]["cache_hit"] is False
+        assert call_kwargs["metadata"]["cache_pool_size"] == 4
+
+    @pytest.mark.asyncio
+    @patch("app.services.hot_take_service.OpenAIAgent")
+    @patch("app.services.hot_take_service.AnthropicAgent")
+    async def test_generate_hot_take_graceful_when_cache_unavailable(
+        self, mock_anthropic, mock_openai
+    ):
+        mock_openai_instance = AsyncMock()
+        mock_openai_instance.name = "OpenAI Agent"
+        mock_openai_instance.generate_hot_take.return_value = "No cache still works"
+        mock_openai.return_value = mock_openai_instance
+        mock_anthropic.return_value = AsyncMock()
+
+        service = HotTakeService()
+        service.cache._client = None
+
+        result = await service.generate_hot_take(
+            topic="cache unavailable",
+            style="witty",
+            agent_type="openai",
+        )
+
+        assert result.hot_take == "No cache still works"
+        mock_openai_instance.generate_hot_take.assert_called_once_with(
+            "cache unavailable", "witty", None
         )
 
     @pytest.mark.asyncio
