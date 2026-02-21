@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     max_generate_request_bytes: int = 16_384
     # Trust proxy header for client IP (recommended on Render)
     trust_x_forwarded_for: bool = True
+    # Redis caching
+    redis_url: Optional[str] = None
+    cache_ttl_seconds: int = 86400  # 24 hours
+    cache_variant_pool_size: int = 5
     # Langfuse tracing
     langfuse_tracing_enabled: bool = True
     langfuse_public_key: Optional[str] = None
