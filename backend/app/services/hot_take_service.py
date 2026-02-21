@@ -7,6 +7,7 @@ from app.agents.openai_agent import OpenAIAgent
 from app.core.prompts import PromptManager
 from app.models.schemas import AgentConfig, HotTakeResponse, SourceRecord
 from app.observability.langfuse import start_generation_observation
+from app.services.cache import CacheService
 from app.services.news_search_service import NewsSearchService
 from app.services.web_search_service import WebSearchService
 
@@ -18,6 +19,7 @@ class HotTakeService:
         self.agents = {"openai": OpenAIAgent(), "anthropic": AnthropicAgent()}
         self.web_search_service = WebSearchService()
         self.news_search_service = NewsSearchService()
+        self.cache = CacheService()
 
     async def generate_hot_take(
         self,
@@ -35,6 +37,47 @@ class HotTakeService:
             agent = self.agents[agent_type]
         else:
             agent = random.choice(list(self.agents.values()))
+
+        # Check cache for no-search requests only.
+        # Strategy: keep generating fresh takes until variant pool is full,
+        # then serve a random cached variant.
+        use_search = use_web_search or use_news_search
+        cache_pool_size = 0
+        if not use_search:
+            cached, cache_pool_size = await self.cache.get_random_variant(
+                topic, style, agent_type
+            )
+            if cached and cache_pool_size >= self.cache.max_variants:
+                cached_response = HotTakeResponse.model_validate(cached)
+                with start_generation_observation(
+                    name="llm.generate_hot_take",
+                    input_data={
+                        "topic": topic,
+                        "style": style,
+                        "has_context": False,
+                    },
+                    metadata={
+                        "agent_type": agent_type or "random",
+                        "agent_name": cached_response.agent_used,
+                        "use_web_search": use_web_search,
+                        "use_news_search": use_news_search,
+                        "news_days": news_days,
+                        "strict_quality_mode": strict_quality_mode,
+                        "cache_hit": True,
+                        "cache_pool_size": cache_pool_size,
+                    },
+                    model="cache",
+                    model_parameters={},
+                ) as generation:
+                    if generation and hasattr(generation, "update"):
+                        generation.update(
+                            output=cached_response.hot_take,
+                            metadata={
+                                "cache_hit": True,
+                                "sources_count": len(cached_response.sources or []),
+                            },
+                        )
+                return cached_response
 
         # Gather context from various sources
         context_parts = []
@@ -97,6 +140,8 @@ class HotTakeService:
                 "use_news_search": use_news_search,
                 "news_days": news_days,
                 "strict_quality_mode": strict_quality_mode,
+                "cache_hit": False,
+                "cache_pool_size": cache_pool_size,
             },
             model=agent.model,
             model_parameters={
@@ -111,18 +156,28 @@ class HotTakeService:
                     metadata={"sources_count": len(source_records)},
                 )
 
-        return HotTakeResponse(
+        result = HotTakeResponse(
             hot_take=hot_take,
             topic=topic,
             style=style,
             agent_used=agent.name,
-            web_search_used=(use_web_search or use_news_search)
-            and combined_context is not None,
-            news_context=combined_context
-            if (use_web_search or use_news_search)
-            else None,
+            web_search_used=use_search and combined_context is not None,
+            news_context=combined_context if use_search else None,
             sources=source_records if source_records else None,
         )
+
+        if not use_search:
+            cache_pool_size = await self.cache.add_variant(
+                topic, style, agent_type, result.model_dump(mode="json")
+            )
+            logger.debug(
+                "Cached non-search take for topic='%s' style='%s' (pool_size=%d)",
+                topic,
+                style,
+                cache_pool_size,
+            )
+
+        return result
 
     def get_available_agents(self) -> List[str]:
         return list(self.agents.keys())
