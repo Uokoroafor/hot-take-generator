@@ -150,6 +150,18 @@ Set `VITE_API_BASE_URL` in your deployment platform (for example, Vercel).
 - The `.env` file is excluded from Docker images for security (use build args instead)
 - Environment variables are embedded at BUILD time for production (not runtime)
 
+### Redis Caching (Optional)
+
+The backend supports optional Redis caching for no-search generation requests:
+
+- Set `REDIS_URL` to enable Redis caching.
+- `CACHE_TTL_SECONDS` controls TTL for each key (default: `86400`).
+- `CACHE_VARIANT_POOL_SIZE` controls how many variants are stored per key (default: `5`).
+- For `POST /api/generate` requests with no web/news search:
+  - If cached variants are fewer than the pool size, the backend still calls the LLM and adds the new result.
+  - If the pool is full, the backend returns a random cached variant.
+- If Redis is unavailable, generation still works and falls back to direct LLM calls.
+
 ### Option 3: Manual Setup
 
 #### Backend Setup

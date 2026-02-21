@@ -81,6 +81,16 @@ Then visit **http://localhost:5173**. API docs are at **http://localhost:8000/do
 
 </details>
 
+## Caching
+
+The backend supports optional Redis caching for no-search generation requests:
+
+- If `use_web_search=false` and `use_news_search=false`, the service stores generated responses in a per-topic/style variant pool.
+- The pool grows up to `CACHE_VARIANT_POOL_SIZE` (default `5`).
+- While the pool has fewer than 5 variants, requests still call the LLM and append new variants.
+- Once the pool is full, requests return a random cached variant instead of calling the LLM.
+- If Redis is unavailable, the app gracefully falls back to direct LLM generation.
+
 ## Development
 
 ```bash

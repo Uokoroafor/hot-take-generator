@@ -86,13 +86,18 @@ The route validates the request using Pydantic schemas and delegates to `HotTake
 The orchestration layer that:
 
 1. **Selects an agent** - Uses requested `agent_type` (openai/anthropic) or randomly selects one if not specified
-2. **Gathers context** (if `use_web_search` or `use_news_search` is true):
+2. **Checks cache for no-search requests**:
+   - Cache key shape: `hot_take:{topic}:{style}[:agent_type]`
+   - Uses a variant pool (`CACHE_VARIANT_POOL_SIZE`, default 5)
+   - If pool is full, returns a random cached variant
+   - If pool is not full, continues to generate a fresh result and appends it to the pool
+3. **Gathers context** (if `use_web_search` or `use_news_search` is true):
    - Fetches recent news via `NewsSearchService`
    - Fetches web results via `WebSearchService`
    - Builds structured `SourceRecord[]` for tracking
-3. **Builds the prompt** - Combines topic, style, and context
-4. **Calls the agent** - Sends prompt to the LLM (raises exceptions on failure)
-5. **Returns response** - Wraps result in `HotTakeResponse` with structured sources
+4. **Builds the prompt** - Combines topic, style, and context
+5. **Calls the agent** - Sends prompt to the LLM (raises exceptions on failure)
+6. **Returns response** - Wraps result in `HotTakeResponse` with structured sources
 
 ### 3. Search Services
 
@@ -165,6 +170,22 @@ Centralised prompt templates for each style:
 The `PromptManager` class provides:
 - `get_full_prompt(agent_type, style, with_news)` - Returns complete system prompt for given agent, style, and context type
 - `get_all_available_styles()` - Lists all available styles
+
+### 6. Cache Service (`app/services/cache.py`)
+
+- Uses Redis when `REDIS_URL` is configured.
+- Stores cached responses as a JSON array (variant pool) per key.
+- Applies TTL via `CACHE_TTL_SECONDS`.
+- Gracefully disables caching if Redis is not configured or unavailable.
+
+### 7. Langfuse Tracing for Cache Behavior
+
+Generation observations include cache metadata for no-search requests:
+
+- `cache_hit` - `true` when serving from a full cache pool, otherwise `false`
+- `cache_pool_size` - number of variants currently available for that key
+
+This makes cache effectiveness visible in Langfuse without changing API responses.
 
 ## Response Flow
 
