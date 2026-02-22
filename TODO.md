@@ -35,12 +35,13 @@ Each section includes short-term and long-term goals to guide development.
 ### Frontend
 - [x] Add component tests using **Vitest + React Testing Library** - _Comprehensive test suites for HotTakeGenerator and App components (20 tests total)_
 - [ ] Add end-to-end tests with **Playwright** (topic input -> generated take -> result display)
-- [ ] Automate tests in CI with coverage thresholds - _Tests run in CI, coverage thresholds need to be added_
+- [x] Automate tests in CI with coverage thresholds - _Backend enforces 80% minimum via pytest; frontend enforces 70% minimum via Vitest coverage thresholds_
 
 ### General
 - [ ] Add mutation testing (`mutmut` for Python, `stryker` for JS)
 - [x] Achieve code coverage ≥ 85% - _Backend at 85% total coverage, frontend has 20 comprehensive tests_
-- [ ] Enforce code coverage ≥ 85% via CI gates - _Coverage achieved, needs CI enforcement_
+- [x] Enforce backend code coverage ≥ 80% via CI gates - _GitHub Actions backend pytest now fails under 80% with `--cov-fail-under=80`_
+- [ ] Enforce code coverage ≥ 85% via CI gates - _Backend currently enforced at 80% for flexibility; raise threshold to 85% later if desired_
 - [x] Add pre-commit hooks for lint, format, and type-check - _Comprehensive pre-commit config with Ruff, ESLint, TypeScript checks, and file validation_
 
 ---
