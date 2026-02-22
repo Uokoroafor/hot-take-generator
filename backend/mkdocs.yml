@@ -22,9 +22,11 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Environment Variables: environment-variables.md
   - Backend:
       - Overview: backend/index.md
       - Architecture: architecture.md
+      - Search Services: search-services.md
       - Python API Reference: backend/api.md
   - Frontend:
       - Overview: frontend/index.md

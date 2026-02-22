@@ -20,21 +20,8 @@ source .venv/bin/activate     # activate the environment on macOS/Linux
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Key environment variables supported by `app.core.config.Settings`:
-
-| Variable | Purpose |
-| --- | --- |
-| `OPENAI_API_KEY` | Enables the `OpenAIAgent` |
-| `ANTHROPIC_API_KEY` | Enables the `AnthropicAgent` |
-| `BRAVE_API_KEY` | Turns on Brave search provider |
-| `SERPER_API_KEY` | Turns on Serper.dev provider |
-| `NEWSAPI_API_KEY` | Enables news context gathering |
-| `CORS_ORIGINS` | Comma-separated allowed frontend origins (default: `http://localhost:5173`) |
-| `ENVIRONMENT` | Set to `development` or `production` (default: `development`) |
-| `DEBUG` | Enable debug mode (default: `true`) |
-| `REDIS_URL` | Enables Redis cache for no-search generation requests |
-| `CACHE_TTL_SECONDS` | Cache TTL in seconds (default: `86400`) |
-| `CACHE_VARIANT_POOL_SIZE` | Max cached variants per key (default: `5`) |
+For a full and up-to-date variable list (backend + frontend), see the
+[Environment Variables reference](environment-variables.md).
 
 The FastAPI docs are available at `http://localhost:8000/docs` once the server is running.
 

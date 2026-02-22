@@ -24,6 +24,7 @@ backend/
 ## Next Steps
 
 - **New to the project?** Start with [Getting Started](getting-started.md) to set up your environment.
+- **Configuring `.env` files?** Use [Environment Variables](environment-variables.md) as the single source of truth.
 - **Need a mental model?** Visit [Backend Overview](backend/index.md) for architecture diagrams and extension tips.
 - **Looking for code-level docs?** See the [Python API Reference](backend/api.md) powered by mkdocstrings.
 - **Curious about the UI?** The [Frontend overview](frontend/index.md) summarises the React client and how it communicates with this API.
