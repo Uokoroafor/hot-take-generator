@@ -31,7 +31,8 @@ Validates the React/TypeScript frontend:
 3. **Setup Node.js** - Install Node.js 22
 4. **Install** - Run `npm install`
 5. **Lint** - Run ESLint via `npm run lint`
-6. **Test** - Run Vitest via `npm test`
+6. **Test** - Run Vitest coverage suite via `npm run test:coverage`
+7. **Upload Coverage** - Store frontend coverage as a build artifact
 
 ### Backend Job
 
@@ -44,8 +45,9 @@ Validates the FastAPI backend:
 5. **Setup uv** - Install uv package manager
 6. **Install** - Run `uv sync --frozen`
 7. **Lint** - Run ruff via `uvx ruff check .`
-8. **Test** - Run pytest via `uv run pytest`
-9. **Build docs** - Build MkDocs with `--strict` flag
+8. **Test** - Run pytest coverage with gate via `uv run pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=80`
+9. **Coverage Badge (main only)** - Generate and commit updated `backend/coverage.svg` when coverage changes
+10. **Build docs** - Build MkDocs with `--strict` flag
 
 **Environment Variables:**
 - `OPENAI_API_KEY` - From secrets or fallback to fake key
@@ -94,10 +96,10 @@ Run the same checks locally before pushing:
 
 ```bash
 # Frontend
-cd frontend && npm run lint && npm test
+cd frontend && npm run lint && npm run test:coverage
 
 # Backend
-cd backend && uvx ruff check . && uv run pytest && uv run mkdocs build --strict
+cd backend && uvx ruff check . && uv run pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=80 && uv run mkdocs build --strict
 
 # Docker
 docker compose build

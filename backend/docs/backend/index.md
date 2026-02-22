@@ -96,4 +96,5 @@ Returns the list of available style names from `PromptManager`.
 ## Related Reading
 
 - [Python API Reference](api.md) for mkdocstrings-generated class/function docs.
+- [Search Services](../search-services.md) for web/news provider behavior and configuration.
 - Check `backend/tests/` in the repository for concrete usage examples and integration coverage.

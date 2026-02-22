@@ -25,7 +25,7 @@ Inspired by [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsen
 | Layer | Stack |
 |-------|-------|
 | **Backend** | FastAPI, Python 3.11+, Pydantic v2, HTTPX |
-| **Frontend** | React 18, TypeScript, Vite |
+| **Frontend** | React 19, TypeScript, Vite |
 | **AI** | OpenAI API, Anthropic API |
 | **Infra** | Render (backend), Vercel (frontend), GitHub Actions CI |
 
@@ -57,6 +57,7 @@ ANTHROPIC_API_KEY=your_key_here
 Then visit **http://localhost:5173**. API docs are at **http://localhost:8000/docs**.
 
 > For Docker setup and manual installation, see [DEVELOPERS.md](./DEVELOPERS.md).
+> For all environment variables (backend + frontend), see [Environment Variables](./backend/docs/environment-variables.md).
 
 ## API
 
@@ -111,8 +112,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow and [CODE_OF_
 See [TODO.md](./TODO.md) for the full roadmap. Highlights:
 
 - Streaming responses
-- Additional LLM providers
-- Voice generation (TTS) for podcast-style output
+- Temperature/creativity controls in the UI
+- Style Presets integration
 
 ## License
 
