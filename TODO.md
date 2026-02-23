@@ -50,8 +50,8 @@ This list intentionally prioritises high-ROI work for a personal project.
 
 ## AI Features & Agents
 
-- [ ] Add adjustable creativity/temperature settings in UI
-- [ ] Add streaming token responses (SSE or WebSocket)
+- [ ] Add adjustable take hotness ("spice level") control in UI - _User-facing intensity control for how provocative the take should be; not raw LLM sampling temperature_
+- [x] Add streaming token responses (SSE) - _POST /api/generate/stream endpoint with status/sources/token/done/error events; frontend useStreamingGenerate hook; live cursor during generation_
 - [x] Include source URLs and timestamps in generated takes - _Structured `sources` records now include URL and optional publish timestamp_
 
 ---
