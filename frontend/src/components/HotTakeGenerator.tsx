@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './HotTakeGenerator.css';
 import useDarkMode from '../hooks/useDarkMode';
 import { useStreamingGenerate } from '../hooks/useStreamingGenerate';
@@ -141,10 +141,10 @@ const HotTakeGenerator = () => {
   };
 
   // Clear form
-  const clearForm = () => {
+  const clearForm = useCallback(() => {
     setTopic('');
     reset();
-  };
+  }, [reset]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -155,7 +155,7 @@ const HotTakeGenerator = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [clearForm]);
 
   const styles = [
     'controversial',
