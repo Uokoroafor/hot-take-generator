@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-23
+
 ### Added
 - MkDocs documentation site with Material theme
 - Auto-generated Python API reference via mkdocstrings
 - Documentation build step in CI pipeline
 - Pre-commit hooks for code quality (ruff, ESLint, TypeScript)
 - Comprehensive frontend test suite with Vitest + React Testing Library
+- Streaming token responses via SSE (`/api/generate/stream`)
+- Langfuse AI observability integration
+- Redis variant-pool caching for no-search requests
+- Per-IP rate limiting and request size limits
+- Markdown rendering for hot take output
+- Prompt injection mitigation via XML topic delimiters
 
 ### Changed
 - Updated documentation to use UK English spelling
@@ -33,5 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive backend test suite with pytest
 - Makefile with development shortcuts
 
-[Unreleased]: https://github.com/Uokoroafor/hot-take-generator/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Uokoroafor/hot-take-generator/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Uokoroafor/hot-take-generator/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Uokoroafor/hot-take-generator/releases/tag/v0.1.0

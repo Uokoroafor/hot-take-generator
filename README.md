@@ -75,7 +75,6 @@ Then visit **http://localhost:5173**. API docs are at **http://localhost:8000/do
 {
   "topic": "pineapple on pizza",
   "style": "controversial",
-  "length": "medium",
   "use_web_search": false
 }
 ```
@@ -111,9 +110,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow and [CODE_OF_
 
 See [TODO.md](./TODO.md) for the full roadmap. Highlights:
 
-- Streaming responses
 - Adjustable take hotness ("spice level") controls in the UI (not raw LLM sampling temperature)
 - Style Presets integration
+- Text-to-speech playback
 
 ## License
 

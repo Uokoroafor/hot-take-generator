@@ -65,6 +65,7 @@ This list intentionally prioritises high-ROI work for a personal project.
 - [x] Add "Share Take" button (copy permalink or tweet) - _Copy to clipboard and share to X/Twitter functionality_
 - [x] Add multiple pages for better UX - _History, Styles, Agents, Sources, Settings, and About pages with navigation_
 - [ ] Wire up Style Presets page — integrate with HotTakeGenerator and backend so custom presets (tone, length, emojis) affect generation
+- [ ] Add text-to-speech playback for generated takes — Web Speech API (free, browser-native) or OpenAI TTS for higher quality
 
 ---
 
