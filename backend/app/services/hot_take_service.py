@@ -288,6 +288,7 @@ class HotTakeService:
 
         # Stream LLM tokens
         tokens: List[str] = []
+        hot_take = ""
         with start_generation_observation(
             name="llm.generate_hot_take_stream",
             input_data={
@@ -330,15 +331,15 @@ class HotTakeService:
                 yield sse(ErrorEvent(detail="Generation failed. Please try again."))
                 return
 
-        hot_take = "".join(tokens).strip()
-        if generation and hasattr(generation, "update"):
-            generation.update(
-                output=hot_take,
-                metadata={
-                    "stream_completed": True,
-                    "sources_count": len(source_records),
-                },
-            )
+            hot_take = "".join(tokens).strip()
+            if generation and hasattr(generation, "update"):
+                generation.update(
+                    output=hot_take,
+                    metadata={
+                        "stream_completed": True,
+                        "sources_count": len(source_records),
+                    },
+                )
 
         result = HotTakeResponse(
             hot_take=hot_take,

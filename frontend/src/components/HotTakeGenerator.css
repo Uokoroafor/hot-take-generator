@@ -65,6 +65,13 @@
   box-shadow: none;
 }
 
+.pre-submit-disclaimer {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
 .error {
   background: #fee;
   border: 1px solid #fcc;
@@ -97,6 +104,55 @@
   border-radius: 8px;
   font-style: italic;
   color: #444;
+}
+
+.hot-take-markdown {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.hot-take-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.hot-take-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.hot-take-markdown h1,
+.hot-take-markdown h2,
+.hot-take-markdown h3,
+.hot-take-markdown h4,
+.hot-take-markdown h5,
+.hot-take-markdown h6 {
+  color: #333;
+  margin: 1rem 0 0.5rem;
+}
+
+.hot-take-markdown p {
+  margin: 0.5rem 0;
+}
+
+.hot-take-markdown ul,
+.hot-take-markdown ol {
+  margin: 0.5rem 0 0.5rem 1.5rem;
+}
+
+.hot-take-markdown a {
+  color: #ff6b35;
+  text-decoration: underline;
+}
+
+.hot-take-markdown code {
+  background: #eceff1;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95em;
 }
 
 .metadata {
@@ -465,6 +521,10 @@
   background: linear-gradient(135deg, #ff6b35, #f7931e);
 }
 
+.dark-mode .pre-submit-disclaimer {
+  color: #aaa;
+}
+
 .dark-mode .hot-take-result,
 .dark-mode .empty-state {
   background: #2a2a2a;
@@ -614,4 +674,15 @@
 
 .dark-mode .source-domain {
   color: #666;
+}
+
+.disclaimer-text {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #555;
+  font-style: italic;
+}
+
+.dark-mode .disclaimer-text {
+  color: #aaa;
 }
