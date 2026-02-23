@@ -35,7 +35,7 @@ class BaseAgent(ABC):
     def format_prompt_with_news(self, topic: str, news_context: Optional[str]) -> str:
         """Format the user prompt to include news context if available"""
         if news_context:
-            return f"""Topic: {topic}
+            return f"""Topic: <topic>{topic}</topic>
 
 Recent news context:
 {news_context}
@@ -46,6 +46,6 @@ Instructions:
 - If sources disagree, briefly note the tension.
 - Keep it punchy, but fact-grounded.
 
-Generate a single hot take about: {topic}. Output only the hot take itself—no labels, headers, style names, or alternative versions."""
+Generate a single hot take about the following topic: <topic>{topic}</topic>. Output only the hot take itself—no labels, headers, style names, or alternative versions."""
         else:
-            return f"Generate a single hot take about: {topic}. Output only the hot take itself—no labels, headers, style names, or alternative versions."
+            return f"Generate a single hot take about the following topic: <topic>{topic}</topic>. Output only the hot take itself—no labels, headers, style names, or alternative versions."
