@@ -387,6 +387,9 @@ const HotTakeGenerator = () => {
             ? 'Generating...'
             : `Generate Hot Take ${useWebSearch || useNewsSearch ? '📰' : '🔥'}`}
         </button>
+        <p className="pre-submit-disclaimer">
+          For fun only. AI-generated opinions may be wrong.
+        </p>
       </form>
 
       {/* Status / skeleton while waiting for first token */}
@@ -476,6 +479,13 @@ const HotTakeGenerator = () => {
             </blockquote>
           ) : (
             <MarkdownText text={displayText} className="hot-take-markdown" />
+          )}
+
+          {/* Disclaimer — shown once generation is complete */}
+          {!isStreaming && result && (
+            <p className="disclaimer-text">
+              ⚠️ AI-generated opinion for entertainment purposes only. Not factual reporting.
+            </p>
           )}
 
           {/* Status shown inline once tokens are flowing */}

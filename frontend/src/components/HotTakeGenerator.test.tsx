@@ -79,6 +79,7 @@ describe('HotTakeGenerator', () => {
     expect(screen.getByLabelText(/include web search results/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/include recent news articles/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /generate hot take/i })).toBeInTheDocument();
+    expect(screen.getByText(/for fun only\. ai-generated opinions may be wrong\./i)).toBeInTheDocument();
   });
 
   it('has submit button disabled when topic is empty', () => {
@@ -167,6 +168,51 @@ describe('HotTakeGenerator', () => {
       expect(screen.getByRole('list')).toBeInTheDocument();
       expect(screen.getByText('Strong take')).toBeInTheDocument();
     });
+  });
+
+  it('shows the disclaimer after generation completes', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeDoneResponse({
+        hot_take: 'Final generated take',
+        topic: 'Disclaimer check',
+      })
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Disclaimer check');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/ai-generated opinion for entertainment purposes only\./i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('does not show the disclaimer while streaming', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeSseResponse([
+        { type: 'status', message: 'Generating...' },
+        { type: 'token', text: 'Streaming output' },
+      ])
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Streaming check');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/streaming output/i)).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(/ai-generated opinion for entertainment purposes only\./i)
+    ).not.toBeInTheDocument();
   });
 
   it('displays error message on failed generation', async () => {

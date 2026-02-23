@@ -65,6 +65,13 @@
   box-shadow: none;
 }
 
+.pre-submit-disclaimer {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
 .error {
   background: #fee;
   border: 1px solid #fcc;
@@ -514,6 +521,10 @@
   background: linear-gradient(135deg, #ff6b35, #f7931e);
 }
 
+.dark-mode .pre-submit-disclaimer {
+  color: #aaa;
+}
+
 .dark-mode .hot-take-result,
 .dark-mode .empty-state {
   background: #2a2a2a;
@@ -663,4 +674,15 @@
 
 .dark-mode .source-domain {
   color: #666;
+}
+
+.disclaimer-text {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #555;
+  font-style: italic;
+}
+
+.dark-mode .disclaimer-text {
+  color: #aaa;
 }
