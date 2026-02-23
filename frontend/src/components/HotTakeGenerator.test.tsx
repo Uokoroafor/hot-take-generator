@@ -147,6 +147,28 @@ describe('HotTakeGenerator', () => {
     expect(screen.getByText('test-agent')).toBeInTheDocument();
   });
 
+  it('renders markdown formatting in the final hot take output', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeDoneResponse({
+        hot_take: '# Bold Claim\n- Point one\n- Point two\n**Strong take**',
+        topic: 'Formatting',
+      })
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Formatting');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Bold Claim' })).toBeInTheDocument();
+      expect(screen.getByRole('list')).toBeInTheDocument();
+      expect(screen.getByText('Strong take')).toBeInTheDocument();
+    });
+  });
+
   it('displays error message on failed generation', async () => {
     const user = userEvent.setup();
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import './HotTakeGenerator.css';
 import useDarkMode from '../hooks/useDarkMode';
 import { useStreamingGenerate } from '../hooks/useStreamingGenerate';
+import MarkdownText from './MarkdownText';
 
 interface SourceRecord {
   type: 'web' | 'news';
@@ -466,14 +467,16 @@ const HotTakeGenerator = () => {
             )}
           </div>
 
-          <blockquote>
-            {displayText}
-            {isStreaming && (
+          {isStreaming ? (
+            <blockquote>
+              {displayText}
               <span className="streaming-cursor" aria-hidden="true">
                 ▍
               </span>
-            )}
-          </blockquote>
+            </blockquote>
+          ) : (
+            <MarkdownText text={displayText} className="hot-take-markdown" />
+          )}
 
           {/* Status shown inline once tokens are flowing */}
           {isStreaming && status && tokens && (
