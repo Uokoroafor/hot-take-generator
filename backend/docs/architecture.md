@@ -60,7 +60,6 @@ The client sends a POST request to `/api/generate`:
 {
   "topic": "remote work",
   "style": "controversial",
-  "length": "medium",
   "agent_type": "openai",
   "use_web_search": true,
   "use_news_search": true,
@@ -72,7 +71,6 @@ The client sends a POST request to `/api/generate`:
 **Request Fields:**
 - `topic` (required) - The subject for the hot take
 - `style` (optional) - One of: controversial, sarcastic, optimistic, pessimistic, absurd, analytical, philosophical, witty, contrarian
-- `length` (optional) - Currently a placeholder; prompts do not yet vary by length
 - `agent_type` (optional) - Specific agent to use: `"openai"`, `"anthropic"`, or `null` for random selection
 - `use_web_search` (optional) - Include general web search results
 - `use_news_search` (optional) - Include recent news articles
@@ -257,7 +255,7 @@ Returns metadata about available AI agents.
       "id": "anthropic",
       "name": "Claude Agent",
       "description": "Generates hot takes with Anthropic Claude models.",
-      "model": "claude-3-haiku-20240307",
+      "model": "claude-haiku-4-5-20251001",
       "temperature": 0.8,
       "system_prompt": "..."
     }
