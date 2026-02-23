@@ -1,17 +1,7 @@
 import { useState, useEffect } from 'react';
 import './HotTakeGenerator.css';
-import config from '../config';
 import useDarkMode from '../hooks/useDarkMode';
-
-interface HotTakeResponse {
-  hot_take: string;
-  topic: string;
-  style: string;
-  agent_used: string;
-  web_search_used?: boolean;
-  news_context?: string;
-  sources?: SourceRecord[];
-}
+import { useStreamingGenerate } from '../hooks/useStreamingGenerate';
 
 interface SourceRecord {
   type: 'web' | 'news';
@@ -32,7 +22,14 @@ interface TrackedSource {
   published?: string;
 }
 
-interface SavedTake extends HotTakeResponse {
+interface SavedTake {
+  hot_take: string;
+  topic: string;
+  style: string;
+  agent_used: string;
+  web_search_used?: boolean;
+  news_context?: string;
+  sources?: SourceRecord[];
   id: string;
   savedAt: string;
 }
@@ -52,13 +49,13 @@ const HotTakeGenerator = () => {
   const [webSearchProvider, setWebSearchProvider] = useState('');
   const [newsDays, setNewsDays] = useState(14);
   const [strictQualityMode, setStrictQualityMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [hotTake, setHotTake] = useState<HotTakeResponse | null>(null);
-  const [error, setError] = useState('');
   const [darkMode, setDarkMode] = useDarkMode();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [savedTakes, setSavedTakes] = useState<SavedTake[]>([]);
   const [defaultAgent, setDefaultAgent] = useState('');
+
+  const { status, tokens, sources, result, isStreaming, error, generate, reset } =
+    useStreamingGenerate();
 
   // Load saved takes from localStorage
   useEffect(() => {
@@ -79,6 +76,20 @@ const HotTakeGenerator = () => {
     }
   }, []);
 
+  // Save sources to localStorage when result arrives
+  useEffect(() => {
+    if (result?.sources) {
+      saveRecentSources(result.sources);
+    }
+  }, [result]);
+
+  // Show error toast when streaming fails
+  useEffect(() => {
+    if (error) {
+      showToast(error, 'error');
+    }
+  }, [error]);
+
   // Toast functions
   const showToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Date.now().toString();
@@ -88,11 +99,14 @@ const HotTakeGenerator = () => {
     }, 3000);
   };
 
+  const hotTake = result ?? null;
+  const displayText = tokens || result?.hot_take || '';
+
   // Copy to clipboard
   const copyToClipboard = async () => {
-    if (!hotTake) return;
+    if (!displayText) return;
     try {
-      await navigator.clipboard.writeText(hotTake.hot_take);
+      await navigator.clipboard.writeText(displayText);
       showToast('Copied to clipboard!', 'success');
     } catch {
       showToast('Failed to copy', 'error');
@@ -102,8 +116,14 @@ const HotTakeGenerator = () => {
   // Share to X/Twitter
   const shareToTwitter = () => {
     if (!hotTake) return;
-    const text = encodeURIComponent(`${hotTake.hot_take}\n\n#HotTake #${hotTake.topic.replace(/\s+/g, '')}`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer');
+    const text = encodeURIComponent(
+      `${hotTake.hot_take}\n\n#HotTake #${hotTake.topic.replace(/\s+/g, '')}`
+    );
+    window.open(
+      `https://twitter.com/intent/tweet?text=${text}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   };
 
   // Save hot take
@@ -123,8 +143,7 @@ const HotTakeGenerator = () => {
   // Clear form
   const clearForm = () => {
     setTopic('');
-    setHotTake(null);
-    setError('');
+    reset();
   };
 
   // Keyboard shortcuts
@@ -147,85 +166,37 @@ const HotTakeGenerator = () => {
     'analytical',
     'philosophical',
     'witty',
-    'contrarian'
+    'contrarian',
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
 
-    setLoading(true);
-    setError('');
-    setHotTake(null);
+    const outcome = await generate({
+      topic: topic.trim(),
+      style,
+      agent_type: defaultAgent || undefined,
+      use_web_search: useWebSearch,
+      use_news_search: useNewsSearch,
+      max_articles: maxArticles,
+      web_search_provider: webSearchProvider || undefined,
+      news_days: newsDays,
+      strict_quality_mode: strictQualityMode,
+    });
 
-    try {
-      const controller = new AbortController();
-      const timeoutMs = 30000;
-      const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
-      let response: Response;
-
-      try {
-        response = await fetch(`${config.apiBaseUrl}/api/generate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal,
-          body: JSON.stringify({
-            topic: topic.trim(),
-            style: style,
-            agent_type: defaultAgent || undefined,
-            use_web_search: useWebSearch,
-            use_news_search: useNewsSearch,
-            max_articles: maxArticles,
-            web_search_provider: webSearchProvider || undefined,
-            news_days: newsDays,
-            strict_quality_mode: strictQualityMode,
-          }),
-        });
-      } finally {
-        window.clearTimeout(timeoutId);
-      }
-
-      if (!response.ok) {
-        let message = 'Failed to generate hot take';
-        try {
-          const errorData = await response.json();
-          if (errorData && typeof errorData.detail === 'string' && errorData.detail.trim()) {
-            message = errorData.detail;
-          }
-        } catch {
-          // Ignore JSON parsing errors and keep generic message
-        }
-        throw new Error(message);
-      }
-
-      const data = await response.json();
-      setHotTake(data);
-      saveRecentSources(data.sources);
+    if (outcome.ok) {
       showToast('Hot take generated!', 'success');
-    } catch (err) {
-      let errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        errorMessage = 'Request timed out after 30 seconds. Please try again.';
-      } else if (err instanceof TypeError) {
-        errorMessage =
-          'Network error. Check API URL, backend availability, or CORS settings.';
-      }
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const saveRecentSources = (sources?: SourceRecord[]) => {
-    if (!sources || sources.length === 0) return;
+  const saveRecentSources = (srcs?: SourceRecord[]) => {
+    if (!srcs || srcs.length === 0) return;
 
     const now = new Date().toISOString();
-    const normalizedSources: TrackedSource[] = sources
-      .filter((source) => source.title && source.url)
-      .map((source) => ({
+    const normalizedSources: TrackedSource[] = srcs
+      .filter(source => source.title && source.url)
+      .map(source => ({
         type: source.type,
         title: source.title,
         url: source.url,
@@ -239,10 +210,12 @@ const HotTakeGenerator = () => {
 
     try {
       const existingRaw = localStorage.getItem('recentSources');
-      const existingSources: TrackedSource[] = existingRaw ? JSON.parse(existingRaw) : [];
+      const existingSources: TrackedSource[] = existingRaw
+        ? JSON.parse(existingRaw)
+        : [];
       const merged = [...normalizedSources, ...existingSources];
       const seen = new Set<string>();
-      const deduped = merged.filter((source) => {
+      const deduped = merged.filter(source => {
         const key = `${source.type}:${source.url}`;
         if (seen.has(key)) return false;
         seen.add(key);
@@ -253,6 +226,10 @@ const HotTakeGenerator = () => {
       console.error('Failed to save recent sources:', e);
     }
   };
+
+  // Determine what to show in the result area
+  const showStreaming = isStreaming || !!tokens || !!result;
+  const showEmpty = !isStreaming && !tokens && !result && !error;
 
   return (
     <div className="hot-take-generator">
@@ -284,7 +261,7 @@ const HotTakeGenerator = () => {
             type="text"
             id="topic"
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+            onChange={e => setTopic(e.target.value)}
             placeholder="Enter a topic for your hot take..."
             aria-describedby="topic-help"
             required
@@ -296,12 +273,8 @@ const HotTakeGenerator = () => {
 
         <div className="form-group">
           <label htmlFor="style">Style:</label>
-          <select
-            id="style"
-            value={style}
-            onChange={(e) => setStyle(e.target.value)}
-          >
-            {styles.map((s) => (
+          <select id="style" value={style} onChange={e => setStyle(e.target.value)}>
+            {styles.map(s => (
               <option key={s} value={s}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </option>
@@ -315,15 +288,14 @@ const HotTakeGenerator = () => {
               type="checkbox"
               id="useWebSearch"
               checked={useWebSearch}
-              onChange={(e) => setUseWebSearch(e.target.checked)}
+              onChange={e => setUseWebSearch(e.target.checked)}
               aria-describedby="web-search-help"
             />
-            <label htmlFor="useWebSearch">
-              🔍 Include web search results
-            </label>
+            <label htmlFor="useWebSearch">🔍 Include web search results</label>
           </div>
           <p id="web-search-help" className="help-text">
-            When enabled, relevant web search results will be included to provide broader context
+            When enabled, relevant web search results will be included to provide broader
+            context
           </p>
         </div>
 
@@ -333,15 +305,14 @@ const HotTakeGenerator = () => {
               type="checkbox"
               id="useNewsSearch"
               checked={useNewsSearch}
-              onChange={(e) => setUseNewsSearch(e.target.checked)}
+              onChange={e => setUseNewsSearch(e.target.checked)}
               aria-describedby="news-search-help"
             />
-            <label htmlFor="useNewsSearch">
-              📰 Include recent news articles
-            </label>
+            <label htmlFor="useNewsSearch">📰 Include recent news articles</label>
           </div>
           <p id="news-search-help" className="help-text">
-            When enabled, recent news articles will be included to make your hot take more timely and relevant
+            When enabled, recent news articles will be included to make your hot take more
+            timely and relevant
           </p>
         </div>
 
@@ -351,7 +322,7 @@ const HotTakeGenerator = () => {
             <select
               id="webSearchProvider"
               value={webSearchProvider}
-              onChange={(e) => setWebSearchProvider(e.target.value)}
+              onChange={e => setWebSearchProvider(e.target.value)}
             >
               <option value="">Auto-select provider</option>
               <option value="brave">Brave</option>
@@ -366,7 +337,7 @@ const HotTakeGenerator = () => {
             <select
               id="newsDays"
               value={newsDays}
-              onChange={(e) => setNewsDays(Number(e.target.value))}
+              onChange={e => setNewsDays(Number(e.target.value))}
             >
               <option value={3}>Last 3 days</option>
               <option value={7}>Last 7 days</option>
@@ -383,15 +354,13 @@ const HotTakeGenerator = () => {
                 type="checkbox"
                 id="strictQualityMode"
                 checked={strictQualityMode}
-                onChange={(e) => setStrictQualityMode(e.target.checked)}
+                onChange={e => setStrictQualityMode(e.target.checked)}
                 aria-describedby="strict-quality-help"
               />
-              <label htmlFor="strictQualityMode">
-                Strict source quality mode
-              </label>
+              <label htmlFor="strictQualityMode">Strict source quality mode</label>
             </div>
             <p id="strict-quality-help" className="help-text">
-              Filters low-signal results and prioritizes stronger, more relevant sources
+              Filters low-signal results and prioritises stronger, more relevant sources
             </p>
           </div>
         )}
@@ -402,7 +371,7 @@ const HotTakeGenerator = () => {
             <select
               id="maxArticles"
               value={maxArticles}
-              onChange={(e) => setMaxArticles(Number(e.target.value))}
+              onChange={e => setMaxArticles(Number(e.target.value))}
             >
               <option value={1}>1 source</option>
               <option value={2}>2 sources</option>
@@ -412,85 +381,153 @@ const HotTakeGenerator = () => {
           </div>
         )}
 
-        <button type="submit" disabled={loading || !topic.trim()}>
-          {loading ? 'Generating...' : `Generate Hot Take ${useWebSearch || useNewsSearch ? '📰' : '🔥'}`}
+        <button type="submit" disabled={isStreaming || !topic.trim()}>
+          {isStreaming
+            ? 'Generating...'
+            : `Generate Hot Take ${useWebSearch || useNewsSearch ? '📰' : '🔥'}`}
         </button>
       </form>
 
-      {/* Loading Skeleton */}
-      {loading && (
-        <div className="hot-take-result skeleton" role="status" aria-busy="true" aria-live="polite">
-          <div className="skeleton-header"></div>
-          <div className="skeleton-text"></div>
-          <div className="skeleton-text"></div>
-          <div className="skeleton-text short"></div>
-          <div className="skeleton-metadata">
-            <div className="skeleton-tag"></div>
-            <div className="skeleton-tag"></div>
-            <div className="skeleton-tag"></div>
-          </div>
+      {/* Status / skeleton while waiting for first token */}
+      {isStreaming && !tokens && (
+        <div
+          className="hot-take-result skeleton"
+          role="status"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          {status ? (
+            <>
+              <div className="streaming-status-message">{status}</div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
+            </>
+          ) : (
+            <>
+              <div className="skeleton-header"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
+              <div className="skeleton-metadata">
+                <div className="skeleton-tag"></div>
+                <div className="skeleton-tag"></div>
+                <div className="skeleton-tag"></div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && !hotTake && !error && (
+      {showEmpty && (
         <div className="empty-state">
           <div className="empty-icon">🔥</div>
           <h3>Ready to Generate Some Hot Takes?</h3>
           <p>Enter a topic above and click the button to get started!</p>
-          <p className="empty-hint">💡 Tip: Press <kbd>Esc</kbd> to clear the form anytime</p>
+          <p className="empty-hint">
+            💡 Tip: Press <kbd>Esc</kbd> to clear the form anytime
+          </p>
         </div>
       )}
 
-      {/* Hot Take Result */}
-      {hotTake && !loading && (
+      {/* Streaming / Final Result */}
+      {showStreaming && (
         <div className="hot-take-result">
           <div className="result-header">
             <h3>Your Hot Take:</h3>
-            <div className="action-buttons">
-              <button
-                onClick={copyToClipboard}
-                className="action-btn"
-                aria-label="Copy to clipboard"
-                title="Copy to clipboard"
-              >
-                📋 Copy
-              </button>
-              <button
-                onClick={shareToTwitter}
-                className="action-btn"
-                aria-label="Share on X/Twitter"
-                title="Share on X/Twitter"
-              >
-                🐦 Tweet
-              </button>
-              <button
-                onClick={saveHotTake}
-                className="action-btn"
-                aria-label="Save hot take"
-                title="Save hot take"
-              >
-                💾 Save
-              </button>
-            </div>
-          </div>
-          <blockquote>{hotTake.hot_take}</blockquote>
-          <div className="metadata">
-            <p><strong>Topic:</strong> {hotTake.topic}</p>
-            <p><strong>Style:</strong> {hotTake.style}</p>
-            <p><strong>Generated by:</strong> {hotTake.agent_used}</p>
-            {hotTake.web_search_used && (
-              <p><strong>📰 News-enhanced:</strong> Yes</p>
+            {!isStreaming && (
+              <div className="action-buttons">
+                <button
+                  onClick={copyToClipboard}
+                  className="action-btn"
+                  aria-label="Copy to clipboard"
+                  title="Copy to clipboard"
+                >
+                  📋 Copy
+                </button>
+                <button
+                  onClick={shareToTwitter}
+                  className="action-btn"
+                  aria-label="Share on X/Twitter"
+                  title="Share on X/Twitter"
+                >
+                  🐦 Tweet
+                </button>
+                <button
+                  onClick={saveHotTake}
+                  className="action-btn"
+                  aria-label="Save hot take"
+                  title="Save hot take"
+                >
+                  💾 Save
+                </button>
+              </div>
             )}
           </div>
 
-          {hotTake.news_context && (
-            <details className="news-context">
-              <summary>📰 News sources used</summary>
-              <div className="news-content">
-                <pre>{hotTake.news_context}</pre>
+          <blockquote>
+            {displayText}
+            {isStreaming && (
+              <span className="streaming-cursor" aria-hidden="true">
+                ▍
+              </span>
+            )}
+          </blockquote>
+
+          {/* Status shown inline once tokens are flowing */}
+          {isStreaming && status && tokens && (
+            <p className="streaming-status-inline" aria-live="polite">
+              {status}
+            </p>
+          )}
+
+          {/* Sources — shown as soon as they arrive from the stream */}
+          {sources.length > 0 && (
+            <div className="streaming-sources">
+              <strong>Sources found:</strong>
+              <ul>
+                {sources.map((s, i) => (
+                  <li key={i}>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer">
+                      {s.title}
+                    </a>
+                    {s.source && <span className="source-domain"> — {s.source}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Metadata — shown once done */}
+          {result && !isStreaming && (
+            <>
+              <div className="metadata">
+                <p>
+                  <strong>Topic:</strong> {result.topic}
+                </p>
+                <p>
+                  <strong>Style:</strong> {result.style}
+                </p>
+                <p>
+                  <strong>Generated by:</strong> {result.agent_used}
+                </p>
+                {result.web_search_used && (
+                  <p>
+                    <strong>📰 News-enhanced:</strong> Yes
+                  </p>
+                )}
               </div>
-            </details>
+
+              {result.news_context && (
+                <details className="news-context">
+                  <summary>📰 News sources used</summary>
+                  <div className="news-content">
+                    <pre>{result.news_context}</pre>
+                  </div>
+                </details>
+              )}
+            </>
           )}
         </div>
       )}
