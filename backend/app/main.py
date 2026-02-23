@@ -36,9 +36,12 @@ def get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+_GENERATE_PATHS = {"/api/generate", "/api/generate/stream"}
+
+
 @app.middleware("http")
 async def basic_rate_limit(request: Request, call_next):
-    if request.url.path == "/api/generate" and request.method.upper() == "POST":
+    if request.url.path in _GENERATE_PATHS and request.method.upper() == "POST":
         content_length = request.headers.get("content-length")
         if content_length:
             try:
@@ -46,7 +49,7 @@ async def basic_rate_limit(request: Request, call_next):
                     return JSONResponse(
                         status_code=413,
                         content={
-                            "detail": "Request payload too large for /api/generate."
+                            "detail": f"Request payload too large for {request.url.path}."
                         },
                     )
             except ValueError:

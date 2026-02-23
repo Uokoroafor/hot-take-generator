@@ -1,6 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, Response
-from app.models.schemas import HotTakeRequest, HotTakeResponse
+from fastapi.responses import StreamingResponse
+from app.models.schemas import ErrorEvent, HotTakeRequest, HotTakeResponse
 from app.observability.langfuse import get_current_trace_id, start_request_span
 from app.services.hot_take_service import HotTakeService
 
@@ -51,6 +52,65 @@ async def generate_hot_take(request: HotTakeRequest, response: Response):
             raise HTTPException(
                 status_code=500, detail="Failed to generate hot take. Please try again."
             ) from e
+
+
+@router.post("/generate/stream")
+async def generate_hot_take_stream(request: HotTakeRequest):
+    """
+    Streaming variant of /api/generate. Returns a text/event-stream response.
+
+    Events emitted (in order):
+    - ``status``  — progress messages (searching, generating)
+    - ``sources`` — search results, emitted after search and before generation
+    - ``token``   — individual LLM output chunks
+    - ``done``    — final assembled result matching HotTakeResponse shape
+    - ``error``   — emitted on failure instead of done
+    """
+
+    async def event_generator():
+        payload = request.model_dump(exclude_none=True)
+        with start_request_span(
+            name="api.generate_hot_take_stream",
+            input_data=payload,
+            metadata={
+                "feature": "hot_take_generator",
+                "route": "/api/generate/stream",
+            },
+        ) as span:
+            try:
+                async for chunk in hot_take_service.stream_hot_take(
+                    topic=request.topic,
+                    style=request.style,
+                    agent_type=request.agent_type,
+                    use_web_search=request.use_web_search,
+                    use_news_search=request.use_news_search,
+                    max_articles=request.max_articles,
+                    web_search_provider=request.web_search_provider,
+                    news_days=request.news_days,
+                    strict_quality_mode=request.strict_quality_mode,
+                ):
+                    yield chunk
+                if span and hasattr(span, "update"):
+                    span.update(output={"stream_completed": True})
+            except Exception:
+                logger.exception("Unhandled error in streaming endpoint")
+                if span and hasattr(span, "update"):
+                    span.update(output={"stream_completed": False})
+                yield f"data: {ErrorEvent(detail='Failed to generate. Please try again.').model_dump_json()}\n\n"
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    }
+    trace_id = get_current_trace_id()
+    if trace_id:
+        headers["X-Trace-Id"] = trace_id
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers=headers,
+    )
 
 
 @router.get("/agents")

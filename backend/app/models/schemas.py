@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Union
 from datetime import datetime
 
 
@@ -92,3 +92,40 @@ class AgentConfig(BaseModel):
     model: str
     temperature: float
     system_prompt: str
+
+
+# --- SSE streaming event types ---
+
+
+class StatusEvent(BaseModel):
+    type: Literal["status"] = "status"
+    message: str
+
+
+class SourcesEvent(BaseModel):
+    type: Literal["sources"] = "sources"
+    sources: List[SourceRecord]
+
+
+class TokenEvent(BaseModel):
+    type: Literal["token"] = "token"
+    text: str
+
+
+class DoneEvent(BaseModel):
+    type: Literal["done"] = "done"
+    hot_take: str
+    topic: str
+    style: str
+    agent_used: str
+    web_search_used: Optional[bool] = False
+    news_context: Optional[str] = None
+    sources: Optional[List[SourceRecord]] = None
+
+
+class ErrorEvent(BaseModel):
+    type: Literal["error"] = "error"
+    detail: str
+
+
+StreamEvent = Union[StatusEvent, SourcesEvent, TokenEvent, DoneEvent, ErrorEvent]
