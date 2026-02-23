@@ -115,12 +115,18 @@ class TestHotTakeService:
         mock_random_choice.return_value = mock_openai_instance
 
         service = HotTakeService()
+        # Isolate from cache so random.choice inside CacheService doesn't interfere
+        service.cache.get_random_variant = AsyncMock(return_value=(None, 0))
+        service.cache.add_variant = AsyncMock(return_value=1)
+
         result = await service.generate_hot_take(topic="random topic", style="absurd")
 
         assert isinstance(result, HotTakeResponse)
         assert result.hot_take == "Random agent hot take!"
         assert result.agent_used == "OpenAI Agent"
-        mock_random_choice.assert_called_once()
+        # Verify random.choice was called with the agents list
+        first_call_args = mock_random_choice.call_args_list[0][0][0]
+        assert mock_openai_instance in first_call_args
 
     @pytest.mark.asyncio
     @patch("app.services.hot_take_service.OpenAIAgent")

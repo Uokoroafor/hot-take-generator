@@ -13,6 +13,11 @@ class TestBaseAgent:
             ) -> str:
                 return "test"
 
+            async def generate_hot_take_stream(
+                self, topic, style="controversial", news_context=None
+            ):
+                yield "test"
+
             def get_system_prompt(self, style: str) -> str:
                 return "test prompt"
 
@@ -27,6 +32,11 @@ class TestBaseAgent:
                 self, topic: str, style: str = "controversial"
             ) -> str:
                 return "test"
+
+            async def generate_hot_take_stream(
+                self, topic, style="controversial", news_context=None
+            ):
+                yield "test"
 
             def get_system_prompt(self, style: str) -> str:
                 return "test prompt"
