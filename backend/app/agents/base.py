@@ -46,6 +46,6 @@ Instructions:
 - If sources disagree, briefly note the tension.
 - Keep it punchy, but fact-grounded.
 
-Generate a hot take about: {topic}"""
+Generate a single hot take about: {topic}. Output only the hot take itself—no labels, headers, style names, or alternative versions."""
         else:
-            return f"Generate a hot take about: {topic}"
+            return f"Generate a single hot take about: {topic}. Output only the hot take itself—no labels, headers, style names, or alternative versions."
