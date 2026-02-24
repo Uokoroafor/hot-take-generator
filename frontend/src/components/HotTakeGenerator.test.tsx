@@ -13,6 +13,25 @@ vi.mock('../config', () => ({
   },
 }));
 
+// Mock Web Speech API (not available in jsdom)
+const mockSpeak = vi.fn((utterance: { onstart?: (() => void) | null }) => utterance.onstart?.());
+const mockCancel = vi.fn();
+Object.defineProperty(window, 'speechSynthesis', {
+  value: { speak: mockSpeak, cancel: mockCancel },
+  writable: true,
+});
+class MockSpeechSynthesisUtterance {
+  text: string;
+  rate = 1;
+  pitch = 1;
+  onstart: (() => void) | null = null;
+  onend: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  constructor(text: string) { this.text = text; }
+}
+globalThis.SpeechSynthesisUtterance =
+  MockSpeechSynthesisUtterance as unknown as typeof SpeechSynthesisUtterance;
+
 // ---------------------------------------------------------------------------
 // SSE stream helpers
 // ---------------------------------------------------------------------------
@@ -69,6 +88,7 @@ describe('HotTakeGenerator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockSpeak.mockImplementation((utterance: { onstart?: (() => void) | null }) => utterance.onstart?.());
   });
 
   it('renders the form with all required fields', () => {
@@ -519,6 +539,109 @@ describe('HotTakeGenerator', () => {
       expect(screen.getByRole('button', { name: /share on x\/twitter/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /save hot take/i })).toBeInTheDocument();
     });
+  });
+
+  it('shows Listen button and voice sliders after generation completes', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeDoneResponse({ hot_take: 'Test hot take', topic: 'Test' })
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Test');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /listen to hot take/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/speech rate/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/speech pitch/i)).toBeInTheDocument();
+    });
+  });
+
+  it('calls speechSynthesis.speak and toggles button to Stop when Listen is clicked', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeDoneResponse({ hot_take: 'Test hot take', topic: 'Test' })
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Test');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /listen to hot take/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /listen to hot take/i }));
+
+    expect(mockSpeak).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /stop speaking/i })).toBeInTheDocument();
+  });
+
+  it('calls speechSynthesis.cancel when Stop is clicked', async () => {
+    const user = userEvent.setup();
+
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeDoneResponse({ hot_take: 'Test hot take', topic: 'Test' })
+    );
+
+    render(<HotTakeGenerator />);
+
+    await user.type(screen.getByLabelText(/topic/i), 'Test');
+    await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /listen to hot take/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /listen to hot take/i }));
+    await user.click(screen.getByRole('button', { name: /stop speaking/i }));
+
+    expect(mockCancel).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /listen to hot take/i })).toBeInTheDocument();
+  });
+
+  it('does not show voice controls when Web Speech API is unavailable', async () => {
+    const user = userEvent.setup();
+    const originalSpeechSynthesis = window.speechSynthesis;
+    const originalUtterance = globalThis.SpeechSynthesisUtterance;
+
+    try {
+      // Simulate unsupported browser runtime
+      Object.defineProperty(window, 'speechSynthesis', {
+        value: undefined,
+        writable: true,
+      });
+      // @ts-expect-error test-only override for unsupported environment
+      globalThis.SpeechSynthesisUtterance = undefined;
+
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        makeDoneResponse({ hot_take: 'Test hot take', topic: 'Test' })
+      );
+
+      render(<HotTakeGenerator />);
+
+      await user.type(screen.getByLabelText(/topic/i), 'Test');
+      await user.click(screen.getByRole('button', { name: /generate hot take/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Test hot take')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('button', { name: /listen to hot take/i })).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/speech rate/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/speech pitch/i)).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'speechSynthesis', {
+        value: originalSpeechSynthesis,
+        writable: true,
+      });
+      globalThis.SpeechSynthesisUtterance = originalUtterance;
+    }
   });
 
   it('saves hot take to localStorage when save button is clicked', async () => {

@@ -54,6 +54,9 @@ const HotTakeGenerator = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [savedTakes, setSavedTakes] = useState<SavedTake[]>([]);
   const [defaultAgent, setDefaultAgent] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechRate, setSpeechRate] = useState(0.9);
+  const [speechPitch, setSpeechPitch] = useState(1.1);
 
   const { status, tokens, sources, result, isStreaming, error, generate, reset } =
     useStreamingGenerate();
@@ -102,6 +105,10 @@ const HotTakeGenerator = () => {
 
   const hotTake = result ?? null;
   const displayText = tokens || result?.hot_take || '';
+  const speechSupported =
+    typeof window !== 'undefined' &&
+    typeof window.speechSynthesis !== 'undefined' &&
+    typeof window.SpeechSynthesisUtterance !== 'undefined';
 
   // Copy to clipboard
   const copyToClipboard = async () => {
@@ -141,9 +148,38 @@ const HotTakeGenerator = () => {
     showToast('Hot take saved!', 'success');
   };
 
+  // Text-to-speech
+  const speak = () => {
+    if (!displayText || !speechSupported) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(displayText);
+    utterance.rate = speechRate;
+    utterance.pitch = speechPitch;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (!speechSupported) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  // Cancel speech when a new generation starts or component unmounts
+  useEffect(() => {
+    if (isStreaming) stopSpeaking();
+  }, [isStreaming]);
+
+  useEffect(() => {
+    return () => window.speechSynthesis?.cancel();
+  }, []);
+
   // Clear form
   const clearForm = useCallback(() => {
     setTopic('');
+    stopSpeaking();
     reset();
   }, [reset]);
 
@@ -441,32 +477,72 @@ const HotTakeGenerator = () => {
           <div className="result-header">
             <h3>Your Hot Take:</h3>
             {!isStreaming && (
-              <div className="action-buttons">
-                <button
-                  onClick={copyToClipboard}
-                  className="action-btn"
-                  aria-label="Copy to clipboard"
-                  title="Copy to clipboard"
-                >
-                  📋 Copy
-                </button>
-                <button
-                  onClick={shareToTwitter}
-                  className="action-btn"
-                  aria-label="Share on X/Twitter"
-                  title="Share on X/Twitter"
-                >
-                  🐦 Tweet
-                </button>
-                <button
-                  onClick={saveHotTake}
-                  className="action-btn"
-                  aria-label="Save hot take"
-                  title="Save hot take"
-                >
-                  💾 Save
-                </button>
-              </div>
+              <>
+                <div className="action-buttons">
+                  <button
+                    onClick={copyToClipboard}
+                    className="action-btn"
+                    aria-label="Copy to clipboard"
+                    title="Copy to clipboard"
+                  >
+                    📋 Copy
+                  </button>
+                  <button
+                    onClick={shareToTwitter}
+                    className="action-btn"
+                    aria-label="Share on X/Twitter"
+                    title="Share on X/Twitter"
+                  >
+                    🐦 Tweet
+                  </button>
+                  <button
+                    onClick={saveHotTake}
+                    className="action-btn"
+                    aria-label="Save hot take"
+                    title="Save hot take"
+                  >
+                    💾 Save
+                  </button>
+                  {speechSupported && (
+                    <button
+                      onClick={isSpeaking ? stopSpeaking : speak}
+                      className="action-btn"
+                      aria-label={isSpeaking ? 'Stop speaking' : 'Listen to hot take'}
+                      title={isSpeaking ? 'Stop' : 'Listen'}
+                    >
+                      {isSpeaking ? '⏹ Stop' : '🔊 Listen'}
+                    </button>
+                  )}
+                </div>
+                {speechSupported && (
+                  <div className="voice-settings">
+                    <label>
+                      Speed: {speechRate.toFixed(1)}x
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="2.0"
+                        step="0.1"
+                        value={speechRate}
+                        onChange={e => setSpeechRate(Number(e.target.value))}
+                        aria-label="Speech rate"
+                      />
+                    </label>
+                    <label>
+                      Pitch: {speechPitch.toFixed(1)}
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="2.0"
+                        step="0.1"
+                        value={speechPitch}
+                        onChange={e => setSpeechPitch(Number(e.target.value))}
+                        aria-label="Speech pitch"
+                      />
+                    </label>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
