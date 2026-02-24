@@ -460,6 +460,30 @@
   flex-wrap: wrap;
 }
 
+.voice-settings {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.voice-settings label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.voice-settings input[type='range'] {
+  width: 80px;
+  accent-color: #e74c3c;
+}
+
+.dark-mode .voice-settings {
+  color: #aaa;
+}
+
 .action-btn {
   background: white;
   border: 2px solid #e1e5e9;
