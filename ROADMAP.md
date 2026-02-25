@@ -1,4 +1,4 @@
-# TODOs / Roadmap
+# Roadmap
 
 A focused roadmap for practical improvements to **Hot Take Generator**.
 This list intentionally prioritises high-ROI work for a personal project.
