@@ -1,7 +1,7 @@
 # Hot Take Generator
 
 [![CI Pipeline](https://github.com/Uokoroafor/hot-take-generator/actions/workflows/main.yaml/badge.svg)](https://github.com/Uokoroafor/hot-take-generator/actions)
-[![Coverage](./backend/coverage.svg)](https://github.com/Uokoroafor/hot-take-generator/tree/main/backend)
+[![Coverage](https://raw.githubusercontent.com/Uokoroafor/hot-take-generator/badges/backend/coverage.svg)](https://github.com/Uokoroafor/hot-take-generator/tree/badges/backend)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
 A full-stack app that generates spicy, controversial opinions on any topic using AI agents powered by OpenAI and Anthropic models.

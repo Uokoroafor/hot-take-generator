@@ -46,7 +46,7 @@ Validates the FastAPI backend:
 6. **Install** - Run `uv sync --frozen`
 7. **Lint** - Run ruff via `uvx ruff check .`
 8. **Test** - Run pytest coverage with gate via `uv run pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=80`
-9. **Coverage Badge (main only)** - Generate and commit updated `backend/coverage.svg` when coverage changes
+9. **Coverage Badge (main only)** - Generate `backend/coverage.svg` via `genbadge` and push to the `badges` branch
 10. **Build docs** - Build MkDocs with `--strict` flag
 
 **Environment Variables:**
