@@ -9,7 +9,7 @@ This is the canonical reference for environment variables used by the project.
 | `OPENAI_API_KEY` | No* | unset | Enables OpenAI agent. |
 | `ANTHROPIC_API_KEY` | No* | unset | Enables Anthropic agent. |
 | `ENVIRONMENT` | No | `development` | Runtime environment label. |
-| `DEBUG` | No | `true` | Enables debug-mode behavior. |
+| `DEBUG` | No | `true` | Enables debug-mode behaviour. |
 | `CORS_ORIGINS` | No | `http://localhost:5173` | Comma-separated allowed frontend origins. |
 | `GENERATE_RATE_LIMIT_PER_MINUTE` | No | `30` | Per-IP generation rate limit. |
 | `MAX_GENERATE_REQUEST_BYTES` | No | `16384` | Max request body size for generation endpoint. |

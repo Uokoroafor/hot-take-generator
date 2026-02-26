@@ -91,6 +91,21 @@ The backend supports optional Redis caching for no-search generation requests:
 - Once the pool is full, requests return a random cached variant instead of calling the LLM.
 - If Redis is unavailable, the app gracefully falls back to direct LLM generation.
 
+## Rate Limiting
+
+The `/api/generate` and `/api/generate/stream` endpoints apply per-IP rate limiting to protect against abuse and control LLM API costs:
+
+- Default limit: **30 requests per minute per IP**
+- Requests that exceed the limit receive a `429 Too Many Requests` response
+- The limit is configurable via the `GENERATE_RATE_LIMIT_PER_MINUTE` environment variable
+- Large request payloads (> 16 KB by default) are rejected with `413 Request Entity Too Large`
+
+> This is an in-memory limiter appropriate for single-instance deployments. See [environment-variables.md](./backend/docs/environment-variables.md) for configuration options.
+
+## Authentication
+
+This app is intentionally unauthenticated — it's designed as a public demo. Access to the generation endpoints is open but rate-limited (see above). If you deploy your own instance and want to restrict access, adding an API key check or auth middleware to the FastAPI backend is straightforward.
+
 ## Development
 
 ```bash
@@ -108,7 +123,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution workflow and [CODE_OF_
 
 ## Roadmap
 
-See [TODO.md](./TODO.md) for the full roadmap. Highlights:
+See [ROADMAP.md](./ROADMAP.md) for the full roadmap. Highlights:
 
 - Adjustable take hotness ("spice level") controls in the UI (not raw LLM sampling temperature)
 - Style Presets integration

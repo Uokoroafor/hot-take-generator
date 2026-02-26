@@ -77,7 +77,7 @@ npm run test:coverage
 
 ## Testing Expectations
 
-- Add/adjust tests for behavior changes.
+- Add/adjust tests for behaviour changes.
 - Keep backend coverage gate passing (`--cov-fail-under=80` in CI).
 - Prefer mocking external AI/search calls in unit tests.
 
@@ -98,7 +98,7 @@ See `backend/docs/ci-cd.md` for details.
 - `README.md`: project overview, quick start, API summary
 - `CONTRIBUTING.md`: contribution workflow
 - `CHANGELOG.md`: release notes
-- `TODO.md`: pragmatic roadmap
+- `ROADMAP.md`: pragmatic roadmap
 - `backend/docs/architecture.md`: backend request flow and internals
 - `backend/docs/environment-variables.md`: canonical backend/frontend env var reference
 - `backend/docs/backend/api.md`: generated Python API reference
