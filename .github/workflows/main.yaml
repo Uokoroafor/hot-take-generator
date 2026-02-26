@@ -104,35 +104,24 @@ jobs:
           cd backend
           uv run pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=80
 
-      - name: Generate coverage badge
+      - name: Checkout badges branch
+        if: github.ref == 'refs/heads/main'
+        uses: actions/checkout@v5
+        with:
+          ref: badges
+          path: badges-worktree
+
+      - name: Generate and push coverage badge
         if: github.ref == 'refs/heads/main'
         run: |
           pip install "genbadge[coverage]"
-          cd backend
-          genbadge coverage -i coverage.xml -o coverage.svg
-
-      - name: Verify coverage badge changed
-        if: github.ref == 'refs/heads/main'
-        uses: tj-actions/verify-changed-files@v20
-        id: verify-changed-files
-        with:
-          files: backend/coverage.svg
-
-      - name: Commit coverage badge
-        if: github.ref == 'refs/heads/main' && steps.verify-changed-files.outputs.files_changed == 'true'
-        run: |
-          cd backend
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add coverage.svg
-          git commit -m "docs: Update coverage badge [skip ci]"
-
-      - name: Push coverage badge
-        if: github.ref == 'refs/heads/main' && steps.verify-changed-files.outputs.files_changed == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          genbadge coverage -i backend/coverage.xml -o badges-worktree/backend/coverage.svg
+          cd badges-worktree
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add backend/coverage.svg
+          git diff --staged --quiet || git commit -m "chore: update coverage badge [skip ci]"
+          git push origin badges
 
       - name: Build docs
         run: |
