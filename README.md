@@ -10,15 +10,15 @@ A full-stack app that generates spicy, controversial opinions on any topic using
 
 ## About
 
-Inspired by [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast), which kicks off each episode with a "Hottest of Takes" segment -- bold, controversial opinions about anything Arsenal FC. I wanted to capture that same energy with AI: a tool that can instantly craft witty, controversial, or thought-provoking takes on any topic.
+Inspired by [The Arsenal Opinion Podcast](https://www.le-grove.co.uk/s/the-arsenal-opinion-podcast), which kicks off each episode with a "Hottest of Takes" segment: bold, controversial opinions about anything Arsenal FC. I wanted to capture that same energy with AI: a tool that can instantly craft witty, controversial, or thought-provoking takes on any topic.
 
 ## Features
 
-- **Multiple AI Agents** -- Choose between OpenAI (GPT) and Anthropic (Claude)
-- **9 Styles** -- Controversial, sarcastic, optimistic, pessimistic, absurd, analytical, philosophical, witty, contrarian
-- **Web Search** -- Optionally pull in recent news for timely takes
-- **Dark Mode** -- Because of course
-- **Share** -- Copy or tweet your favourite takes
+- **Multiple AI Agents**: Choose between OpenAI (GPT) and Anthropic (Claude)
+- **9 Styles**: Controversial, sarcastic, optimistic, pessimistic, absurd, analytical, philosophical, witty, contrarian
+- **Web Search**: Optionally pull in recent news for timely takes
+- **Dark Mode**: Because of course
+- **Share**: Copy or tweet your favourite takes
 
 ## Tech Stack
 
@@ -104,7 +104,7 @@ The `/api/generate` and `/api/generate/stream` endpoints apply per-IP rate limit
 
 ## Authentication
 
-This app is intentionally unauthenticated — it's designed as a public demo. Access to the generation endpoints is open but rate-limited (see above). If you deploy your own instance and want to restrict access, adding an API key check or auth middleware to the FastAPI backend is straightforward.
+This app is intentionally unauthenticated; it's designed as a public demo. Access to the generation endpoints is open but rate-limited (see above). If you deploy your own instance and want to restrict access, adding an API key check or auth middleware to the FastAPI backend is straightforward.
 
 ## Development
 
@@ -131,4 +131,4 @@ See [ROADMAP.md](./ROADMAP.md) for the full roadmap. Highlights:
 
 ## License
 
-MIT License -- see [LICENSE](./LICENSE) for details.
+MIT License. See [LICENSE](./LICENSE) for details.
